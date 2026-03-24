@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Step-Up SIP Calculator — CalcByDev</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #0f0f0f; --surface: #181818; --border: #272727; --text: #f0f0f0; --muted: #5a5a5a; --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.08); --error: #ef4444; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  nav { padding: 18px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(15,15,15,0.95); backdrop-filter: blur(8px); z-index: 100; }
+  .logo { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; text-decoration: none; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } nav, .page { padding-left: 20px; padding-right: 20px; } }
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] { -webkit-appearance: none; flex: 1; height: 1px; background: var(--border); outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num-input { width: 88px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 7px 10px; border-radius: 6px; outline: none; font-family: inherit; text-align: right; flex-shrink: 0; transition: border-color 0.15s; }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+  .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .result-card.highlight { border-color: var(--accent); background: var(--accent-dim); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-card.highlight .result-value { color: var(--accent); }
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } }
+</style>
+</head>
+<body>
+<nav><a class="logo" href="index.html">Calc<span>ByDev</span></a><a class="back" href="index.html">← All Calculators</a></nav>
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="index.html">Home</a> → Investment → Step-Up SIP</div>
+    <div class="page-title">Step-Up SIP Calculator</div>
+    <div class="page-desc">Increase your SIP amount every year and see how much faster you build wealth</div>
+  </div>
+  <div class="grid">
+    <div class="inputs">
+      <div class="field">
+        <div class="field-top"><span class="field-label">Initial Monthly SIP (₹)</span><span class="field-hint">500 – 10,00,000</span></div>
+        <div class="input-row"><input type="range" id="amt-r" min="500" max="1000000" step="1" value="5000" oninput="onSlider('amt')"><input type="number" class="num-input" id="amt-n" value="5000" oninput="onNumber('amt')"></div>
+        <div class="err-msg" id="amt-err"></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Annual Step-Up (%)</span><span class="field-hint">1 – 50</span></div>
+        <div class="input-row"><input type="range" id="step-r" min="1" max="50" step="1" value="10" oninput="onSlider('step')"><input type="number" class="num-input" id="step-n" value="10" oninput="onNumber('step')"></div>
+        <div class="err-msg" id="step-err"></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Expected Return p.a. (%)</span><span class="field-hint">1 – 30</span></div>
+        <div class="input-row"><input type="range" id="rate-r" min="1" max="30" step="0.1" value="12" oninput="onSlider('rate')"><input type="number" class="num-input" id="rate-n" value="12" oninput="onNumber('rate')"></div>
+        <div class="err-msg" id="rate-err"></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Time Period (Years)</span><span class="field-hint">1 – 40</span></div>
+        <div class="input-row"><input type="range" id="yr-r" min="1" max="40" step="1" value="10" oninput="onSlider('yr')"><input type="number" class="num-input" id="yr-n" value="10" oninput="onNumber('yr')"></div>
+        <div class="err-msg" id="yr-err"></div>
+      </div>
+      <div class="info-box">
+        <div class="info-title">What is Step-Up SIP?</div>
+        <div class="info-text">Step-Up SIP means increasing your monthly investment by a fixed % every year. As your salary grows, your SIP grows too — leading to significantly higher wealth compared to a regular SIP.</div>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="results">
+        <div class="result-card highlight"><div class="result-label">Total Value</div><div class="result-value" id="r-total">—</div></div>
+        <div class="result-card"><div class="result-label">Invested</div><div class="result-value" id="r-invested">—</div></div>
+        <div class="result-card"><div class="result-label">Returns</div><div class="result-value" id="r-returns">—</div></div>
+      </div>
+      <div class="chart-box"><div class="chart-label">Growth over time — Total Value vs Amount Invested</div><canvas id="chart" height="210"></canvas></div>
+    </div>
+  </div>
+</div>
+<footer><div>© 2025 <span>CalcByDev</span> · devsr.me</div><div>Made with ❤️ in Jaipur</div></footer>
+<script>
+  Chart.defaults.color='#5a5a5a'; Chart.defaults.borderColor='#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11;
+  let chartInst;
+  const limits={amt:{min:500,max:1000000},step:{min:1,max:50},rate:{min:1,max:30},yr:{min:1,max:40}};
+  function onSlider(k){const v=+document.getElementById(k+'-r').value;document.getElementById(k+'-n').value=v;document.getElementById(k+'-n').classList.remove('error');document.getElementById(k+'-err').textContent='';calc();}
+  function onNumber(k){const inp=document.getElementById(k+'-n');const v=+inp.value;const{min,max}=limits[k];const e=document.getElementById(k+'-err');if(inp.value===''||isNaN(v)){e.textContent='';return;}if(v<min){inp.classList.add('error');e.textContent='Min value is '+min.toLocaleString('en-IN');return;}if(v>max){inp.classList.add('error');e.textContent='Max value is '+max.toLocaleString('en-IN');return;}inp.classList.remove('error');e.textContent='';document.getElementById(k+'-r').value=Math.min(v,limits[k].max);calc();}
+  function getVal(k){return+document.getElementById(k+'-n').value||0;}
+  function fmt(n){if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+' Cr';if(n>=100000)return'₹'+(n/100000).toFixed(2)+' L';return'₹'+Math.round(n).toLocaleString('en-IN');}
+  function fmtAxis(n){if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+'Cr';if(n>=100000)return'₹'+(n/100000).toFixed(2)+'L';if(n>=1000)return'₹'+(n/1000).toFixed(2)+'k';return'₹'+n.toFixed(2);}
+  function calc(){
+    const P=getVal('amt'),stepPct=getVal('step')/100,rate=getVal('rate'),yrs=getVal('yr');
+    if(!P||!stepPct||!rate||!yrs)return;
+    const i=rate/100/12;
+    let total=0,invested=0,monthly=P;
+    const labels=[],val=[],inv=[];
+    for(let y=0;y<yrs;y++){for(let m=0;m<12;m++){total=(total+monthly)*(1+i);invested+=monthly;}labels.push('Yr '+(y+1));val.push(parseFloat(total.toFixed(2)));inv.push(parseFloat(invested.toFixed(2)));monthly*=(1+stepPct);}
+    document.getElementById('r-total').textContent=fmt(total);
+    document.getElementById('r-invested').textContent=fmt(invested);
+    document.getElementById('r-returns').textContent=fmt(total-invested);
+    if(chartInst)chartInst.destroy();
+    chartInst=new Chart(document.getElementById('chart').getContext('2d'),{type:'line',data:{labels,datasets:[{label:'Total Value',data:val,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.06)',fill:true},{label:'Amount Invested',data:inv,borderColor:'#5a5a5a',backgroundColor:'transparent',borderDash:[5,4]}]},options:{responsive:true,animation:{duration:200},interaction:{mode:'index',intersect:false},plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,padding:14,usePointStyle:true}},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+fmt(ctx.parsed.y)}}},scales:{x:{grid:{color:'#1e1e1e'},ticks:{maxTicksLimit:8}},y:{grid:{color:'#1e1e1e'},ticks:{callback:v=>fmtAxis(v),maxTicksLimit:6}}},elements:{point:{radius:0,hoverRadius:3},line:{tension:0.4,borderWidth:2}}}});
+  }
+  calc();
+</script>
+</body>
+</html>

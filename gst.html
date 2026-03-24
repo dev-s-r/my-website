@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GST Calculator — CalcByDev</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #0f0f0f; --surface: #181818; --border: #272727; --text: #f0f0f0; --muted: #5a5a5a; --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.08); --error: #ef4444; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  nav { padding: 18px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: rgba(15,15,15,0.95); backdrop-filter: blur(8px); z-index: 100; }
+  .logo { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; text-decoration: none; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } nav, .page { padding-left: 20px; padding-right: 20px; } }
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] { -webkit-appearance: none; flex: 1; height: 1px; background: var(--border); outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num-input { width: 88px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 7px 10px; border-radius: 6px; outline: none; font-family: inherit; text-align: right; flex-shrink: 0; transition: border-color 0.15s; }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+  .num-input-full { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 9px 12px; border-radius: 6px; outline: none; font-family: inherit; transition: border-color 0.15s; }
+  .num-input-full:focus { border-color: var(--accent); }
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+  .toggle { display: flex; gap: 8px; }
+  .toggle-btn { flex: 1; padding: 9px; font-size: 13px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .toggle-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
+  .rate-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .pill { padding: 5px 12px; font-size: 12px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); border-radius: 20px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+  .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .result-card.highlight { border-color: var(--accent); background: var(--accent-dim); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-card.highlight .result-value { color: var(--accent); }
+  .split-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .split-item { text-align: center; }
+  .split-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .split-value { font-size: 15px; font-weight: 600; }
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } }
+</style>
+</head>
+<body>
+<nav><a class="logo" href="index.html">Calc<span>ByDev</span></a><a class="back" href="index.html">← All Calculators</a></nav>
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="index.html">Home</a> → Loan & Tax → GST Calculator</div>
+    <div class="page-title">GST Calculator</div>
+    <div class="page-desc">Add or remove GST from any amount with full CGST / SGST / IGST breakup</div>
+  </div>
+  <div class="grid">
+    <div class="inputs">
+      <div class="field">
+        <div class="field-top"><span class="field-label">Amount (₹)</span></div>
+        <input type="number" class="num-input-full" id="amt" value="1000" oninput="calc()">
+        <div class="err-msg" id="amt-err"></div>
+      </div>
+      <div class="field">
+        <div class="field-label" style="margin-bottom:6px">GST Rate</div>
+        <div class="rate-pills">
+          <button class="pill" onclick="setRate(0)">0%</button>
+          <button class="pill" onclick="setRate(5)">5%</button>
+          <button class="pill" onclick="setRate(12)">12%</button>
+          <button class="pill active" onclick="setRate(18)">18%</button>
+          <button class="pill" onclick="setRate(28)">28%</button>
+        </div>
+        <div style="margin-top:10px">
+          <div class="field-top"><span class="field-label">Custom Rate (%)</span><span class="field-hint">0 – 28</span></div>
+          <div class="input-row"><input type="range" id="rate-r" min="0" max="28" step="1" value="18" oninput="onSlider('rate')"><input type="number" class="num-input" id="rate-n" value="18" oninput="onNumber('rate')"></div>
+          <div class="err-msg" id="rate-err"></div>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label" style="margin-bottom:6px">Mode</div>
+        <div class="toggle">
+          <button class="toggle-btn active" id="btn-add" onclick="setMode('add')">Add GST</button>
+          <button class="toggle-btn" id="btn-rem" onclick="setMode('remove')">Remove GST</button>
+        </div>
+      </div>
+      <div class="info-box">
+        <div class="info-title">GST Slabs in India</div>
+        <div class="info-text">0% — Essential goods (milk, eggs, salt)<br>5% — Basic necessities<br>12% — Processed foods, computers<br>18% — Most services, electronics<br>28% — Luxury goods, automobiles</div>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="results">
+        <div class="result-card"><div class="result-label">Original Amount</div><div class="result-value" id="r-original">—</div></div>
+        <div class="result-card"><div class="result-label">GST Amount</div><div class="result-value" id="r-gst">—</div></div>
+        <div class="result-card highlight"><div class="result-label">Final Amount</div><div class="result-value" id="r-final">—</div></div>
+      </div>
+      <div class="split-box">
+        <div class="split-item"><div class="split-label">CGST (<span id="cgst-r">9%</span>)</div><div class="split-value" id="r-cgst">—</div></div>
+        <div class="split-item"><div class="split-label">SGST (<span id="sgst-r">9%</span>)</div><div class="split-value" id="r-sgst">—</div></div>
+        <div class="split-item"><div class="split-label">IGST (<span id="igst-r">18%</span>)</div><div class="split-value" id="r-igst">—</div></div>
+      </div>
+      <div class="chart-box"><div class="chart-label">Amount breakdown</div><canvas id="chart" height="210"></canvas></div>
+    </div>
+  </div>
+</div>
+<footer><div>© 2025 <span>CalcByDev</span> · devsr.me</div><div>Made with ❤️ in Jaipur</div></footer>
+<script>
+  Chart.defaults.color='#5a5a5a'; Chart.defaults.borderColor='#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11;
+  let chartInst, mode='add';
+  const limits={rate:{min:0,max:28}};
+  function setMode(m){mode=m;document.getElementById('btn-add').className='toggle-btn'+(m==='add'?' active':'');document.getElementById('btn-rem').className='toggle-btn'+(m==='remove'?' active':'');calc();}
+  function setRate(r){document.getElementById('rate-r').value=r;document.getElementById('rate-n').value=r;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));event.target.classList.add('active');calc();}
+  function onSlider(k){const v=+document.getElementById(k+'-r').value;document.getElementById(k+'-n').value=v;document.getElementById(k+'-n').classList.remove('error');document.getElementById(k+'-err').textContent='';document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));calc();}
+  function onNumber(k){const inp=document.getElementById(k+'-n');const v=+inp.value;const{min,max}=limits[k];const e=document.getElementById(k+'-err');if(inp.value===''||isNaN(v)){e.textContent='';return;}if(v<min){inp.classList.add('error');e.textContent='Min value is '+min;return;}if(v>max){inp.classList.add('error');e.textContent='Max value is '+max;return;}inp.classList.remove('error');e.textContent='';document.getElementById(k+'-r').value=v;calc();}
+  function fmt(n){if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+' Cr';if(n>=100000)return'₹'+(n/100000).toFixed(2)+' L';return'₹'+n.toFixed(2);}
+  function calc(){
+    const amt=+document.getElementById('amt').value||0;
+    const rate=+document.getElementById('rate-n').value||0;
+    let original,gstAmt,final;
+    if(mode==='add'){original=amt;gstAmt=parseFloat((amt*rate/100).toFixed(2));final=parseFloat((amt+gstAmt).toFixed(2));}
+    else{final=amt;original=parseFloat((amt*100/(100+rate)).toFixed(2));gstAmt=parseFloat((amt-original).toFixed(2));}
+    const half=rate/2;
+    document.getElementById('r-original').textContent=fmt(original);
+    document.getElementById('r-gst').textContent=fmt(gstAmt);
+    document.getElementById('r-final').textContent=fmt(final);
+    document.getElementById('cgst-r').textContent=half+'%';
+    document.getElementById('sgst-r').textContent=half+'%';
+    document.getElementById('igst-r').textContent=rate+'%';
+    document.getElementById('r-cgst').textContent=fmt(gstAmt/2);
+    document.getElementById('r-sgst').textContent=fmt(gstAmt/2);
+    document.getElementById('r-igst').textContent=fmt(gstAmt);
+    if(chartInst)chartInst.destroy();
+    chartInst=new Chart(document.getElementById('chart').getContext('2d'),{type:'bar',data:{labels:['Original','GST','Final'],datasets:[{data:[original,gstAmt,final],backgroundColor:['#3b82f6','#ef4444','#22c55e'],borderRadius:4,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e1e1e'},ticks:{callback:v=>fmt(v),maxTicksLimit:6}}}}});
+  }
+  calc();
+</script>
+</body>
+</html>
