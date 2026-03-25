@@ -11,7 +11,11 @@
 <meta property="og:title" content="Loan Prepayment Calculator — CalcByDev">
 <meta property="og:description" content="Extra monthly payment → How much interest saved? How many years cut? Instant results, no signup.">
 <meta property="og:type" content="website">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:image" content="https://devsr.me/og-image.png">
+<meta property="og:url" content="https://devsr.me/prepayment.html">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root { --bg: #0B1221; --surface: #1E293B; --border: #334155; --text: #F1F5F9; --muted: #94A3B8; --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.08);
@@ -23,6 +27,8 @@
   .logo span { color: var(--accent); }
   .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
   .back:hover { color: var(--accent); }
+  .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--accent); }
   .page { max-width: 900px; margin: 0 auto; padding: 40px; }
   .page-header { margin-bottom: 32px; }
   .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
@@ -75,6 +81,9 @@
   .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
   footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
   footer span { color: var(--accent); }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 16px; }
   @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } .comparison-grid { grid-template-columns: 1fr; } }
   [data-theme="light"] { --bg: #F8FAFC; --surface: #FFFFFF; --border: #E2E8F0; --text: #0F172A; --muted: #64748B; --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.10); --nav-bg: rgba(248,250,252,0.95); }
   html { scroll-behavior: smooth; }
@@ -88,11 +97,12 @@
 <body>
 <nav>
   <a class="logo" href="index.html">Calc<span>ByDev</span></a>
+  <a class="nav-link" href="compare.html">Compare</a>
   <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
 </nav>
 <div class="page">
   <div class="page-header">
-    <div class="breadcrumb"><a href="index.html">Home</a> → Loan & Tax → Loan Prepayment Calculator</div>
+    <div class="breadcrumb"><a href="index.html">Home</a> → Loans → Loan Prepayment Calculator</div>
     <div class="page-title">Loan Prepayment Calculator</div>
     <div class="page-desc">See how much interest you save and how many years you cut by paying extra each month</div>
   </div>
@@ -164,9 +174,17 @@
     </div>
   </div>
 </div>
-<footer><div>© 2026 <span>CalcByDev</span> · devsr.me</div><div>Made with ❤️ in Jaipur</div></footer>
+<footer>
+  <div>© 2026 <span>CalcByDev</span> · devsr.me</div>
+  <div class="footer-links">
+    <a href="index.html#calculators">Calculators</a>
+    <a href="compare.html">Compare</a>
+    <a href="index.html#about">About</a>
+  </div>
+  <div>Made with ❤️ in Jaipur</div>
+</footer>
 <script>
-  if (typeof Chart !== 'undefined') { Chart.defaults.color='#5a5a5a'; Chart.defaults.borderColor='#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11; }
+  if (typeof Chart !== 'undefined') { var _t=localStorage.getItem('theme')||'dark'; Chart.defaults.color=_t==='light'?'#737373':'#5a5a5a'; Chart.defaults.borderColor=_t==='light'?'#e0e0e0':'#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11; }
 
   function cColor() { return document.documentElement.getAttribute('data-theme') === 'light' ? '#e0e0e0' : '#1e1e1e'; }
   function updateChartTheme() {
