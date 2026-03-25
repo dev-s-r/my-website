@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Comparison — CalcByDev</title>
+<meta name="description" content="Free Investment Comparison calculator. Compare SIP vs FD, SIP vs Lumpsum, FD vs RD side-by-side with charts. See which investment wins. No ads.">
+<meta property="og:title" content="Investment Comparison — CalcByDev">
+<meta property="og:description" content="Compare SIP vs FD, SIP vs Lumpsum, and FD vs RD side by side with instant charts. No signup needed.">
+<meta property="og:type" content="website">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #0f0f0f; --surface: #181818; --border: #272727; --text: #f0f0f0; --muted: #5a5a5a; --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.08); --error: #ef4444; --green: #22c55e; --amber: #f59e0b; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  nav { padding: 18px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--nav-bg); backdrop-filter: blur(8px); z-index: 100; }
+  .logo { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; text-decoration: none; color: var(--text); }
+  .logo span { color: var(--accent); }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 28px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+
+  /* Mode tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; font-family: inherit; }
+  .tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .tab:hover:not(.active) { border-color: var(--border); color: var(--text); }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } nav, .page { padding-left: 20px; padding-right: 20px; } }
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  .section-divider { display: flex; align-items: center; gap: 8px; }
+  .section-divider-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .section-divider-label.a { color: var(--accent); }
+  .section-divider-label.b { color: var(--amber); }
+  .section-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+  input[type=range] { -webkit-appearance: none; flex: 1; height: 1px; background: var(--border); outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+  input[type=range].b-range::-webkit-slider-thumb { background: var(--amber); }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+  input[type=range].b-range::-moz-range-thumb { background: var(--amber); }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num-input { width: 88px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 7px 10px; border-radius: 6px; outline: none; font-family: inherit; text-align: right; flex-shrink: 0; transition: border-color 0.15s; }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+  .winner-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .winner-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .winner-side { flex: 1; min-width: 130px; }
+  .winner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
+  .winner-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .winner-val.a { color: var(--accent); }
+  .winner-val.b { color: var(--amber); }
+  .winner-badge { text-align: center; font-size: 11px; padding: 6px 12px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .winner-badge.a { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+  .winner-badge.b { background: rgba(245,158,11,0.10); color: var(--amber); border: 1px solid var(--amber); }
+  .winner-badge.tie { background: rgba(90,90,90,0.15); color: var(--muted); border: 1px solid var(--border); }
+  .results-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .result-card.a-card { border-color: var(--accent); background: var(--accent-dim); }
+  .result-card.b-card { border-color: var(--amber); background: rgba(245,158,11,0.07); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-name { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .result-name.a { color: var(--accent); }
+  .result-name.b { color: var(--amber); }
+  .result-stat { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+  .result-stat-key { font-size: 11px; color: var(--muted); }
+  .result-stat-val { font-size: 12px; font-weight: 600; }
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } .results-row { grid-template-columns: 1fr; } }
+  [data-theme="light"] { --bg: #f5f5f5; --surface: #ffffff; --border: #e0e0e0; --text: #0f0f0f; --muted: #737373; --accent: #3b82f6; --accent-dim: rgba(59,130,246,0.10); --nav-bg: rgba(245,245,245,0.95); }
+  html { scroll-behavior: smooth; }
+  .theme-btn { background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 15px; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, color 0.15s; flex-shrink: 0; }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .back-top { position: fixed; bottom: 24px; right: 24px; width: 36px; height: 36px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; z-index: 999; line-height: 1; }
+  .back-top.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">Calc<span>ByDev</span></a>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
+  <a class="back" href="index.html">← All Calculators</a>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="index.html">Home</a> → Investment → Investment Comparison</div>
+    <div class="page-title">Investment Comparison</div>
+    <div class="page-desc">Compare investment options side-by-side with charts — see which one wins for your timeline</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setMode('sip-fd', this)">SIP vs FD</button>
+    <button class="tab" onclick="setMode('sip-lump', this)">SIP vs Lumpsum</button>
+    <button class="tab" onclick="setMode('fd-rd', this)">FD vs RD</button>
+  </div>
+
+  <div class="grid">
+    <div class="inputs" id="inputs-panel">
+      <!-- Inputs rendered by JS -->
+    </div>
+    <div class="right-panel">
+      <div class="winner-box">
+        <div class="winner-row">
+          <div class="winner-side">
+            <div class="winner-label" id="w-label-a">Option A</div>
+            <div class="winner-val a" id="w-val-a">—</div>
+          </div>
+          <div class="winner-badge" id="w-badge">—</div>
+          <div class="winner-side" style="text-align:right">
+            <div class="winner-label" id="w-label-b">Option B</div>
+            <div class="winner-val b" id="w-val-b">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="results-row">
+        <div class="result-card a-card">
+          <div class="result-name a" id="card-a-name">Option A</div>
+          <div class="result-stat"><span class="result-stat-key">Final Value</span><span class="result-stat-val" id="ca-value">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Invested</span><span class="result-stat-val" id="ca-invested">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Returns</span><span class="result-stat-val" id="ca-returns">—</span></div>
+        </div>
+        <div class="result-card b-card">
+          <div class="result-name b" id="card-b-name">Option B</div>
+          <div class="result-stat"><span class="result-stat-key">Final Value</span><span class="result-stat-val" id="cb-value">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Invested</span><span class="result-stat-val" id="cb-invested">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Returns</span><span class="result-stat-val" id="cb-returns">—</span></div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label" id="chart-label">Growth comparison over time</div>
+        <canvas id="chart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<footer><div>© 2026 <span>CalcByDev</span> · devsr.me</div><div>Made with ❤️ in Jaipur</div></footer>
+<script>
+  if (typeof Chart !== 'undefined') { Chart.defaults.color='#5a5a5a'; Chart.defaults.borderColor='#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11; }
+
+  function cColor() { return document.documentElement.getAttribute('data-theme') === 'light' ? '#e0e0e0' : '#1e1e1e'; }
+  function updateChartTheme() {
+    if (typeof Chart === 'undefined') return;
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = isLight ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = isLight ? '#e0e0e0' : '#1e1e1e';
+  }
+
+  let chartInst;
+  let currentMode = 'sip-fd';
+
+  function fmt(n) { if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+' Cr'; if(n>=100000)return'₹'+(n/100000).toFixed(2)+' L'; return'₹'+Math.round(n).toLocaleString('en-IN'); }
+  function fmtAxis(n) { if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+'Cr'; if(n>=100000)return'₹'+(n/100000).toFixed(2)+'L'; if(n>=1000)return'₹'+(n/1000).toFixed(0)+'k'; return'₹'+n.toFixed(0); }
+
+  // ── Field render helpers ──
+  function fieldHTML(key, label, hint, min, max, step, defaultVal, isB) {
+    const rangeClass = isB ? 'b-range' : '';
+    return `<div class="field">
+      <div class="field-top"><span class="field-label">${label}</span><span class="field-hint">${hint}</span></div>
+      <div class="input-row"><input type="range" id="${key}-r" class="${rangeClass}" min="${min}" max="${max}" step="${step}" value="${defaultVal}" oninput="onSlider('${key}')"><input type="number" class="num-input" id="${key}-n" value="${defaultVal}" oninput="onNumber('${key}',${min},${max})"></div>
+      <div class="err-msg" id="${key}-err"></div>
+    </div>`;
+  }
+
+  function dividerHTML(label, cls) {
+    return `<div class="section-divider"><span class="section-divider-label ${cls}">${label}</span><hr></div>`;
+  }
+
+  function infoHTML(title, text) {
+    return `<div class="info-box"><div class="info-title">${title}</div><div class="info-text">${text}</div></div>`;
+  }
+
+  const modeConfig = {
+    'sip-fd': {
+      nameA: 'SIP (Market)', nameB: 'Fixed Deposit',
+      fields: () =>
+        dividerHTML('📈 SIP — Market Investment', 'a') +
+        fieldHTML('amt', 'Monthly Investment (₹)', '500 – 10L', 500, 1000000, 500, 10000, false) +
+        fieldHTML('sip-rate', 'SIP Return p.a. (%)', '1 – 30', 1, 30, 0.1, 12, false) +
+        fieldHTML('yr', 'Time Period (Years)', '1 – 30', 1, 30, 1, 10, false) +
+        dividerHTML('🏦 FD — Fixed Deposit', 'b') +
+        fieldHTML('fd-rate', 'FD Rate p.a. (%)', '1 – 15', 1, 15, 0.1, 7, true) +
+        infoHTML('How this works', 'Same monthly amount invested in SIP (market linked) vs deposited in an FD each month (recurring deposit style). SIP assumes variable market returns; FD uses quarterly compounding.'),
+      calc: () => {
+        const amt = gv('amt'), sipRate = gv('sip-rate'), yrs = gv('yr'), fdRate = gv('fd-rate');
+        if (!amt || !sipRate || !yrs || !fdRate) return;
+        const i = sipRate / 100 / 12, n = yrs * 12;
+        const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
+        // FD: monthly deposit, quarterly compounding => effective monthly rate
+        const fdMonthly = Math.pow(1 + fdRate/100/4, 1/3) - 1;
+        const fdFV = amt * ((Math.pow(1+fdMonthly, n) - 1) / fdMonthly) * (1+fdMonthly);
+        const invested = amt * n;
+        const labels=[], sipD=[], fdD=[];
+        for(let y=1;y<=yrs;y++){const mn=y*12;sipD.push(parseFloat((amt*((Math.pow(1+i,mn)-1)/i)*(1+i)).toFixed(2)));fdD.push(parseFloat((amt*((Math.pow(1+fdMonthly,mn)-1)/fdMonthly)*(1+fdMonthly)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: sipFV, bFV: fdFV, aInv: invested, bInv: invested, labels, aData: sipD, bData: fdD, chartLabel: 'Corpus growth — SIP (market) vs FD (recurring deposits)' };
+      }
+    },
+    'sip-lump': {
+      nameA: 'SIP (Monthly)', nameB: 'Lumpsum',
+      fields: () =>
+        dividerHTML('💹 SIP — Monthly Investment', 'a') +
+        fieldHTML('amt', 'Monthly Investment (₹)', '500 – 10L', 500, 1000000, 500, 10000, false) +
+        fieldHTML('yr', 'Time Period (Years)', '1 – 30', 1, 30, 1, 10, false) +
+        fieldHTML('rate', 'Expected Return p.a. (%)', '1 – 30', 1, 30, 0.1, 12, false) +
+        dividerHTML('💰 Lumpsum — One-Time Investment', 'b') +
+        infoHTML('How this works', 'Invests the total amount (monthly × years × 12) either as a monthly SIP or as a lumpsum at the start — same return rate. Shows how timing of investment affects final wealth.'),
+      calc: () => {
+        const amt = gv('amt'), yrs = gv('yr'), rate = gv('rate');
+        if (!amt || !yrs || !rate) return;
+        const i = rate/100/12, n = yrs*12;
+        const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
+        const lumpInv = amt * n;
+        const lumpFV = lumpInv * Math.pow(1 + rate/100, yrs);
+        const labels=[], sipD=[], lumpD=[];
+        for(let y=1;y<=yrs;y++){const mn=y*12;sipD.push(parseFloat((amt*((Math.pow(1+i,mn)-1)/i)*(1+i)).toFixed(2)));lumpD.push(parseFloat((lumpInv*Math.pow(1+rate/100,y)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: sipFV, bFV: lumpFV, aInv: amt*n, bInv: lumpInv, labels, aData: sipD, bData: lumpD, chartLabel: 'Corpus growth — Monthly SIP vs Lumpsum (same total investment)' };
+      }
+    },
+    'fd-rd': {
+      nameA: 'Fixed Deposit', nameB: 'Recurring Deposit',
+      fields: () =>
+        dividerHTML('🏛️ FD — Fixed Deposit (one-time)', 'a') +
+        fieldHTML('lump', 'FD Amount (₹)', '1,000 – 1 Cr', 1000, 10000000, 1000, 120000, false) +
+        fieldHTML('fd-rate', 'FD Rate p.a. (%)', '1 – 15', 1, 15, 0.1, 7, false) +
+        fieldHTML('yr', 'Tenure (Years)', '1 – 10', 1, 10, 1, 5, false) +
+        dividerHTML('📅 RD — Recurring Deposit (monthly)', 'b') +
+        fieldHTML('rd-rate', 'RD Rate p.a. (%)', '1 – 15', 1, 15, 0.1, 6.5, true) +
+        infoHTML('How this works', 'FD: deposit the total amount (monthly equivalent × months) as a lumpsum. RD: deposit the monthly equivalent every month for the same period. Compares one-shot vs disciplined investing.'),
+      calc: () => {
+        const lump = gv('lump'), fdRate = gv('fd-rate'), yrs = gv('yr'), rdRate = gv('rd-rate');
+        if (!lump || !fdRate || !yrs || !rdRate) return;
+        const n = yrs * 12;
+        const fdFV = lump * Math.pow(1 + fdRate/100/4, 4*yrs);
+        const monthly = lump / n;
+        const rdMonthly = Math.pow(1 + rdRate/100/4, 1/3) - 1;
+        const rdFV = monthly * ((Math.pow(1+rdMonthly, n) - 1) / rdMonthly) * (1+rdMonthly);
+        const labels=[], fdD=[], rdD=[];
+        for(let y=1;y<=yrs;y++){fdD.push(parseFloat((lump*Math.pow(1+fdRate/100/4,4*y)).toFixed(2)));const mn=y*12;rdD.push(parseFloat((monthly*((Math.pow(1+rdMonthly,mn)-1)/rdMonthly)*(1+rdMonthly)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: fdFV, bFV: rdFV, aInv: lump, bInv: lump, labels, aData: fdD, bData: rdD, chartLabel: 'Maturity value — FD (one-time) vs RD (monthly installments)' };
+      }
+    }
+  };
+
+  function gv(k) { return +document.getElementById(k+'-n').value||0; }
+
+  function onSlider(k) {
+    const el = document.getElementById(k+'-r');
+    if (!el) return;
+    document.getElementById(k+'-n').value = +el.value;
+    document.getElementById(k+'-n').classList.remove('error');
+    document.getElementById(k+'-err').textContent = '';
+    calc();
+  }
+
+  function onNumber(k, min, max) {
+    const inp = document.getElementById(k+'-n');
+    if (!inp) return;
+    const v = +inp.value;
+    const e = document.getElementById(k+'-err');
+    if (inp.value === '' || isNaN(v)) { if(e) e.textContent=''; return; }
+    if (v < min) { inp.classList.add('error'); if(e) e.textContent='Min '+min.toLocaleString('en-IN'); return; }
+    if (v > max) { inp.classList.add('error'); if(e) e.textContent='Max '+max.toLocaleString('en-IN'); return; }
+    inp.classList.remove('error');
+    if(e) e.textContent='';
+    const r = document.getElementById(k+'-r');
+    if(r) r.value = Math.min(v, max);
+    calc();
+  }
+
+  function setMode(m, btn) {
+    currentMode = m;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderInputs();
+    calc();
+  }
+
+  function renderInputs() {
+    document.getElementById('inputs-panel').innerHTML = modeConfig[currentMode].fields();
+  }
+
+  function calc() {
+    const cfg = modeConfig[currentMode];
+    let result;
+    try { result = cfg.calc(); } catch(e) { return; }
+    if (!result) return;
+    const { aFV, bFV, aInv, bInv, labels, aData, bData, chartLabel } = result;
+
+    document.getElementById('w-label-a').textContent = cfg.nameA;
+    document.getElementById('w-label-b').textContent = cfg.nameB;
+    document.getElementById('w-val-a').textContent = fmt(aFV);
+    document.getElementById('w-val-b').textContent = fmt(bFV);
+    document.getElementById('card-a-name').textContent = cfg.nameA;
+    document.getElementById('card-b-name').textContent = cfg.nameB;
+    document.getElementById('ca-value').textContent = fmt(aFV);
+    document.getElementById('ca-invested').textContent = fmt(aInv);
+    document.getElementById('ca-returns').textContent = fmt(aFV - aInv);
+    document.getElementById('cb-value').textContent = fmt(bFV);
+    document.getElementById('cb-invested').textContent = fmt(bInv);
+    document.getElementById('cb-returns').textContent = fmt(bFV - bInv);
+    document.getElementById('chart-label').textContent = chartLabel;
+
+    const diff = Math.abs(aFV - bFV) / Math.max(aFV, bFV);
+    const badge = document.getElementById('w-badge');
+    if (diff < 0.005) {
+      badge.textContent = '≈ Roughly Equal'; badge.className = 'winner-badge tie';
+    } else if (aFV > bFV) {
+      badge.textContent = cfg.nameA + ' wins 🏆'; badge.className = 'winner-badge a';
+    } else {
+      badge.textContent = cfg.nameB + ' wins 🏆'; badge.className = 'winner-badge b';
+    }
+
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(document.getElementById('chart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: cfg.nameA, data: aData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.06)', fill: false },
+          { label: cfg.nameB, data: bData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.06)', fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 200 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 8, padding: 14, usePointStyle: true } },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { color: cColor() }, ticks: { maxTicksLimit: 8 } },
+          y: { grid: { color: cColor() }, ticks: { callback: v => fmtAxis(v), maxTicksLimit: 6 } }
+        },
+        elements: { point: { radius: 0, hoverRadius: 3 }, line: { tension: 0.4, borderWidth: 2 } }
+      }
+    });
+  }
+
+  renderInputs();
+  calc();
+</script>
+<script>
+  (function () {
+    var saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = saved === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', saved === 'light' ? 'true' : 'false'); }
+  })();
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
+    if (typeof updateChartTheme === 'function') { updateChartTheme(); }
+    try { if (typeof calc === 'function') { calc(); } } catch(e) {}
+  }
+
+  window.addEventListener('scroll', function () {
+    var btn = document.getElementById('back-top');
+    if (btn) btn.classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+<button class="back-top" id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">↑</button>
+</body>
+</html>
