@@ -175,6 +175,74 @@
   .featured-card .card-arrow { margin-top: auto; padding-top: 8px; font-size: 12px; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
   .featured-card:hover .card-arrow { opacity: 1; }
 
+  /* SEARCH BAR */
+  .search-wrap {
+    position: relative;
+    max-width: 460px;
+    margin: 0 auto 28px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    pointer-events: none;
+    line-height: 1;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 14px;
+    padding: 12px 16px 12px 42px;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    line-height: 1;
+    display: none;
+  }
+  .search-clear:hover { color: var(--text); }
+  .no-results {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 36px 16px;
+    color: var(--muted);
+    font-size: 13px;
+    display: none;
+  }
+  .no-results strong { color: var(--text); }
+
+  /* VERSION BADGE */
+  .version-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(59,130,246,0.3);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+
   /* CATEGORY TABS */
   .cat-tabs {
     display: flex;
@@ -332,8 +400,14 @@
 </nav>
 
 <div class="hero">
+  <div class="version-badge">v2.1</div>
   <h1>Understand your money.<br><span>Not just calculate it.</span></h1>
   <p>A financial decision tool built for real Indians — clean, fast, no ads.</p>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="search-input" class="search-input" placeholder="Search calculators… e.g. SIP, EMI, tax, retirement" autocomplete="off" oninput="onSearch(this.value)" aria-label="Search calculators">
+    <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search" aria-label="Clear search">✕</button>
+  </div>
   <div class="hero-btns">
     <a class="btn-primary" href="#calculators">Start Calculating</a>
     <a class="btn-secondary" href="compare.html">Compare Tools</a>
@@ -379,7 +453,7 @@
 <div class="section" id="calculators">
   <div class="section-title"><span>🗂️</span>All Calculators</div>
   <div class="cat-tabs">
-    <button class="cat-tab active" onclick="filterCat('all', this)">All</button>
+    <button class="cat-tab active" id="cat-all" onclick="filterCat('all', this)">All</button>
     <button class="cat-tab" onclick="filterCat('investing', this)">📈 Investing</button>
     <button class="cat-tab" onclick="filterCat('savings', this)">🏦 Savings</button>
     <button class="cat-tab" onclick="filterCat('loans', this)">🏠 Loans</button>
@@ -388,42 +462,42 @@
   </div>
   <div class="cards" id="calc-grid">
     <!-- Investing -->
-    <a class="card" href="sip.html" data-cat="investing">
+    <a class="card" href="sip.html" data-cat="investing" data-keywords="systematic investment plan monthly mutual fund wealth sip">
       <div class="card-icon">💹</div>
       <div class="card-name">SIP Calculator</div>
       <div class="card-desc">Build wealth through monthly investing</div>
       <div class="card-hint">Best for 5+ year wealth creation</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="lumpsum.html" data-cat="investing">
+    <a class="card" href="lumpsum.html" data-cat="investing" data-keywords="lumpsum one time investment bulk amount mutual fund">
       <div class="card-icon">💰</div>
       <div class="card-name">Lumpsum Calculator</div>
       <div class="card-desc">One-time investment growth over time</div>
       <div class="card-hint">Ideal for one-shot investments</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="stepup.html" data-cat="investing">
+    <a class="card" href="stepup.html" data-cat="investing" data-keywords="step up sip increment annual raise salary increase">
       <div class="card-icon">🚀</div>
       <div class="card-name">Step-Up SIP</div>
       <div class="card-desc">SIP with annual increment for faster wealth</div>
       <div class="card-hint">Boost corpus as your income grows</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="cagr.html" data-cat="investing">
+    <a class="card" href="cagr.html" data-cat="investing" data-keywords="cagr compounded annual growth rate return performance">
       <div class="card-icon">📊</div>
       <div class="card-name">CAGR Calculator</div>
       <div class="card-desc">Compounded annual growth on any investment</div>
       <div class="card-hint">Measure true investment performance</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="compound.html" data-cat="investing">
+    <a class="card" href="compound.html" data-cat="investing" data-keywords="compound interest compounding growth interest rate principal">
       <div class="card-icon">♾️</div>
       <div class="card-name">Compound Interest</div>
       <div class="card-desc">See how compounding multiplies your money</div>
       <div class="card-hint">Time is your biggest asset</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="compare.html" data-cat="investing">
+    <a class="card" href="compare.html" data-cat="investing" data-keywords="compare sip fd prepay invest versus vs comparison">
       <div class="card-icon">⚖️</div>
       <div class="card-name">Investment Comparison</div>
       <div class="card-desc">SIP vs FD, Prepay vs Invest, and more</div>
@@ -431,21 +505,21 @@
       <div class="card-arrow">Open →</div>
     </a>
     <!-- Savings -->
-    <a class="card" href="fd.html" data-cat="savings">
+    <a class="card" href="fd.html" data-cat="savings" data-keywords="fd fixed deposit bank savings interest maturity">
       <div class="card-icon">🏛️</div>
       <div class="card-name">FD Calculator</div>
       <div class="card-desc">Fixed return investment, quarterly compounding</div>
       <div class="card-hint">Safe but usually loses to inflation</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="rd.html" data-cat="savings">
+    <a class="card" href="rd.html" data-cat="savings" data-keywords="rd recurring deposit monthly saving bank post office">
       <div class="card-icon">📅</div>
       <div class="card-name">RD Calculator</div>
       <div class="card-desc">Recurring deposit returns month by month</div>
       <div class="card-hint">Disciplined monthly saving</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="ppf.html" data-cat="savings">
+    <a class="card" href="ppf.html" data-cat="savings" data-keywords="ppf public provident fund tax free government 15 year">
       <div class="card-icon">🔒</div>
       <div class="card-name">PPF Calculator</div>
       <div class="card-desc">15-year Public Provident Fund maturity amount</div>
@@ -453,14 +527,14 @@
       <div class="card-arrow">Open →</div>
     </a>
     <!-- Loans -->
-    <a class="card" href="emi.html" data-cat="loans">
+    <a class="card" href="emi.html" data-cat="loans" data-keywords="emi loan home car personal monthly installment interest principal">
       <div class="card-icon">🏠</div>
       <div class="card-name">EMI Calculator</div>
       <div class="card-desc">Monthly cost for home, car or personal loans</div>
       <div class="card-hint">Know your repayment before you borrow</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="prepayment.html" data-cat="loans">
+    <a class="card" href="prepayment.html" data-cat="loans" data-keywords="prepayment loan extra payment interest saving part payment">
       <div class="card-icon">💸</div>
       <div class="card-name">Loan Prepayment</div>
       <div class="card-desc">Extra payment → interest saved &amp; years cut</div>
@@ -468,14 +542,14 @@
       <div class="card-arrow">Open →</div>
     </a>
     <!-- Tax -->
-    <a class="card" href="gst.html" data-cat="tax">
+    <a class="card" href="gst.html" data-cat="tax" data-keywords="gst goods services tax cgst sgst igst add remove">
       <div class="card-icon">🧾</div>
       <div class="card-name">GST Calculator</div>
       <div class="card-desc">Add or remove GST with CGST/SGST/IGST breakup</div>
       <div class="card-hint">18% applies to most services</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="tax.html" data-cat="tax">
+    <a class="card" href="tax.html" data-cat="tax" data-keywords="income tax old new regime itr fy 2025 salary deduction">
       <div class="card-icon">🇮🇳</div>
       <div class="card-name">Income Tax Calculator</div>
       <div class="card-desc">Old vs New Regime comparison FY 2025-26</div>
@@ -483,20 +557,21 @@
       <div class="card-arrow">Open →</div>
     </a>
     <!-- Planning -->
-    <a class="card" href="retirement.html" data-cat="planning">
+    <a class="card" href="retirement.html" data-cat="planning" data-keywords="retirement corpus retire early financial freedom pension planning">
       <div class="card-icon">🏖️</div>
       <div class="card-name">Retirement Calculator</div>
       <div class="card-desc">Corpus needed and monthly SIP to retire free</div>
       <div class="card-hint">Start early, retire comfortably</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="goal.html" data-cat="planning">
+    <a class="card" href="goal.html" data-cat="planning" data-keywords="goal planner target dream financial plan sip lumpsum">
       <div class="card-icon">🎯</div>
       <div class="card-name">Goal Planner</div>
       <div class="card-desc">Set a target → get your monthly SIP and lumpsum</div>
       <div class="card-hint">Plan any financial goal clearly</div>
       <div class="card-arrow">Open →</div>
     </a>
+    <div class="no-results" id="no-results"></div>
   </div>
 </div>
 
@@ -535,7 +610,7 @@
 </div>
 
 <footer>
-  <div>© 2026 <span>CalcByDev</span> · devsr.me</div>
+  <div>© 2026 <span>CalcByDev</span> · devsr.me · v2.1</div>
   <div class="footer-links">
     <a href="#calculators">Calculators</a>
     <a href="compare.html">Compare</a>
@@ -562,8 +637,86 @@
     if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
   }
 
-  /* ── Category filter (no scroll, instant) ── */
+  /* ── Fuzzy search helpers ── */
+  function damerauLevenshtein(a, b) {
+    var m = a.length, n = b.length;
+    var dp = [];
+    for (var i = 0; i <= m; i++) {
+      dp[i] = [];
+      for (var j = 0; j <= n; j++) dp[i][j] = i === 0 ? j : (j === 0 ? i : 0);
+    }
+    for (var i = 1; i <= m; i++) {
+      for (var j = 1; j <= n; j++) {
+        var cost = a[i-1] === b[j-1] ? 0 : 1;
+        dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+        if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1])
+          dp[i][j] = Math.min(dp[i][j], dp[i-2][j-2] + cost);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function fuzzyMatch(query, text) {
+    query = query.toLowerCase().trim();
+    text  = text.toLowerCase();
+    if (!query) return true;
+    if (text.includes(query)) return true;
+    var qWords = query.split(/\s+/).filter(function(w) { return w.length > 0; });
+    var tWords = text.split(/\s+/);
+    return qWords.every(function(qw) {
+      if (text.includes(qw)) return true;
+      var maxDist = qw.length <= 3 ? 0 : qw.length <= 5 ? 1 : 2;
+      return tWords.some(function(tw) { return damerauLevenshtein(qw, tw) <= maxDist; });
+    });
+  }
+
+  /* ── Search ── */
+  function onSearch(query) {
+    var clearBtn = document.getElementById('search-clear');
+    if (clearBtn) clearBtn.style.display = query ? '' : 'none';
+
+    var cards = document.querySelectorAll('#calc-grid .card');
+    var visible = 0;
+
+    cards.forEach(function(card) {
+      var searchText = [
+        card.querySelector('.card-name')  ? card.querySelector('.card-name').textContent  : '',
+        card.querySelector('.card-desc')  ? card.querySelector('.card-desc').textContent  : '',
+        card.querySelector('.card-hint')  ? card.querySelector('.card-hint').textContent  : '',
+        card.getAttribute('data-keywords') || ''
+      ].join(' ');
+      var match = !query || fuzzyMatch(query, searchText);
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    var noRes = document.getElementById('no-results');
+    if (noRes) {
+      if (visible === 0 && query) {
+        noRes.innerHTML = 'No calculators found for <strong>"' + query.replace(/</g,'&lt;') + '"</strong> — try a different keyword.';
+        noRes.style.display = '';
+      } else {
+        noRes.style.display = 'none';
+      }
+    }
+
+    if (query) {
+      document.querySelectorAll('.cat-tab').forEach(function(t) { t.classList.remove('active'); });
+      var allTab = document.getElementById('cat-all');
+      if (allTab) allTab.classList.add('active');
+    }
+  }
+
+  function clearSearch() {
+    var input = document.getElementById('search-input');
+    if (input) { input.value = ''; input.focus(); }
+    onSearch('');
+  }
+
+  /* ── Category filter ── */
   function filterCat(cat, btn) {
+    var input = document.getElementById('search-input');
+    if (input && input.value) { input.value = ''; onSearch(''); }
     document.querySelectorAll('.cat-tab').forEach(function(t) { t.classList.remove('active'); });
     btn.classList.add('active');
     document.querySelectorAll('#calc-grid .card').forEach(function(card) {
