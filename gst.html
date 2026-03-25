@@ -66,6 +66,12 @@
   .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
   .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
   .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  .adv-toggle { background: none; border: 1px dashed var(--border); color: var(--muted); font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; margin-top: 6px; transition: all 0.15s; }
+  .adv-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.cess-pill { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); color: #f59e0b; }
+  .pill.cess-pill.active { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .biz-row { display: none; }
+  .biz-row.visible { display: block; }
   footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
   footer span { color: var(--accent); }
   @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } }
@@ -142,16 +148,23 @@
       </div>
       <div class="field">
         <div class="field-label" style="margin-bottom:6px">GST Rate</div>
-        <div class="rate-pills">
+        <div class="rate-pills" id="std-pills">
           <button class="pill" onclick="setRate(0)">0%</button>
           <button class="pill" onclick="setRate(5)">5%</button>
           <button class="pill" onclick="setRate(12)">12%</button>
           <button class="pill active" onclick="setRate(18)">18%</button>
           <button class="pill" onclick="setRate(28)">28%</button>
+          <button class="pill cess-pill" onclick="setCess()">28% + Cess</button>
         </div>
+        <div class="rate-pills" id="adv-pills" style="display:none;margin-top:6px">
+          <button class="pill" onclick="setRate(0.25)">0.25%</button>
+          <button class="pill" onclick="setRate(1.5)">1.5%</button>
+          <button class="pill" onclick="setRate(3)">3%</button>
+        </div>
+        <button class="adv-toggle" id="adv-toggle-btn" onclick="toggleAdvanced()">Show Advanced Rates</button>
         <div style="margin-top:10px">
           <div class="field-top"><span class="field-label">Custom Rate (%)</span><span class="field-hint">0 – 28</span></div>
-          <div class="input-row"><input type="range" id="rate-r" min="0" max="28" step="1" value="18" oninput="onSlider('rate')"><input type="number" class="num-input" id="rate-n" value="18" oninput="onNumber('rate')"></div>
+          <div class="input-row"><input type="range" id="rate-r" min="0" max="28" step="0.25" value="18" oninput="onSlider('rate')"><input type="number" class="num-input" id="rate-n" value="18" oninput="onNumber('rate')"></div>
           <div class="err-msg" id="rate-err"></div>
         </div>
       </div>
@@ -162,9 +175,16 @@
           <button class="toggle-btn" id="btn-rem" onclick="setMode('remove')">Remove GST</button>
         </div>
       </div>
+      <div class="field">
+        <div class="field-label" style="margin-bottom:6px">View</div>
+        <div class="toggle">
+          <button class="toggle-btn active" id="btn-ind" onclick="setBizMode('individual')">Individual</button>
+          <button class="toggle-btn" id="btn-biz" onclick="setBizMode('business')">Business</button>
+        </div>
+      </div>
       <div class="info-box">
         <div class="info-title">GST Slabs in India</div>
-        <div class="info-text">0% — Essential goods (milk, eggs, salt)<br>5% — Basic necessities<br>12% — Processed foods, computers<br>18% — Most services, electronics<br>28% — Luxury goods, automobiles</div>
+        <div class="info-text">0% — Essential goods (milk, eggs, salt)<br>5% — Basic necessities<br>12% — Processed foods, computers<br>18% — Most services, electronics<br>28% — Luxury goods, automobiles<br>28% + Cess — Premium luxury &amp; sin goods</div>
       </div>
     </div>
     <div class="right-panel">
@@ -196,31 +216,44 @@
     Chart.defaults.borderColor = isLight ? '#e0e0e0' : '#1e1e1e';
   }
 
-  let chartInst, mode='add';
+  let chartInst, mode='add', bizMode='individual', advancedShown=false, isCess=false;
   const limits={rate:{min:0,max:28}};
   function setMode(m){mode=m;document.getElementById('btn-add').className='toggle-btn'+(m==='add'?' active':'');document.getElementById('btn-rem').className='toggle-btn'+(m==='remove'?' active':'');calc();}
-  function setRate(r){document.getElementById('rate-r').value=r;document.getElementById('rate-n').value=r;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));event.target.classList.add('active');calc();}
-  function onSlider(k){const v=+document.getElementById(k+'-r').value;document.getElementById(k+'-n').value=v;document.getElementById(k+'-n').classList.remove('error');document.getElementById(k+'-err').textContent='';document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));calc();}
-  function onNumber(k){const inp=document.getElementById(k+'-n');const v=+inp.value;const{min,max}=limits[k];const e=document.getElementById(k+'-err');if(inp.value===''||isNaN(v)){e.textContent='';return;}if(v<min){inp.classList.add('error');e.textContent='Min value is '+min;return;}if(v>max){inp.classList.add('error');e.textContent='Max value is '+max;return;}inp.classList.remove('error');e.textContent='';document.getElementById(k+'-r').value=v;calc();}
+  function setBizMode(m){bizMode=m;document.getElementById('btn-ind').className='toggle-btn'+(m==='individual'?' active':'');document.getElementById('btn-biz').className='toggle-btn'+(m==='business'?' active':'');calc();}
+  function setRate(r){isCess=false;document.getElementById('rate-r').value=r;document.getElementById('rate-n').value=r;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));event.target.classList.add('active');calc();}
+  function setCess(){isCess=true;document.getElementById('rate-r').value=28;document.getElementById('rate-n').value=28;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));event.target.classList.add('active');calc();}
+  function toggleAdvanced(){advancedShown=!advancedShown;var adv=document.getElementById('adv-pills');var btn=document.getElementById('adv-toggle-btn');adv.style.display=advancedShown?'flex':'none';btn.textContent=advancedShown?'Hide Advanced Rates':'Show Advanced Rates';}
+  function onSlider(k){const v=+document.getElementById(k+'-r').value;document.getElementById(k+'-n').value=v;document.getElementById(k+'-n').classList.remove('error');document.getElementById(k+'-err').textContent='';document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));isCess=false;calc();}
+  function onNumber(k){const inp=document.getElementById(k+'-n');const v=+inp.value;const{min,max}=limits[k];const e=document.getElementById(k+'-err');if(inp.value===''||isNaN(v)){e.textContent='';return;}if(v<min){inp.classList.add('error');e.textContent='Min value is '+min;return;}if(v>max){inp.classList.add('error');e.textContent='Max value is '+max;return;}inp.classList.remove('error');e.textContent='';document.getElementById(k+'-r').value=v;isCess=false;calc();}
   function fmt(n){if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+' Cr';if(n>=100000)return'₹'+(n/100000).toFixed(2)+' L';return'₹'+n.toFixed(2);}
   function calc(){
     const amt=+document.getElementById('amt').value||0;
-    const rate=+document.getElementById('rate-n').value||0;
+    let rate=+document.getElementById('rate-n').value||0;
     let original,gstAmt,final;
     if(mode==='add'){original=amt;gstAmt=parseFloat((amt*rate/100).toFixed(2));final=parseFloat((amt+gstAmt).toFixed(2));}
     else{final=amt;original=parseFloat((amt*100/(100+rate)).toFixed(2));gstAmt=parseFloat((amt-original).toFixed(2));}
     const half=rate/2;
     document.getElementById('r-original').textContent=fmt(original);
-    document.getElementById('r-gst').textContent=fmt(gstAmt);
+    document.getElementById('r-gst').textContent=fmt(gstAmt)+(isCess?' + Cess':'');
     document.getElementById('r-final').textContent=fmt(final);
-    document.getElementById('cgst-r').textContent=half+'%';
-    document.getElementById('sgst-r').textContent=half+'%';
-    document.getElementById('igst-r').textContent=rate+'%';
-    document.getElementById('r-cgst').textContent=fmt(gstAmt/2);
-    document.getElementById('r-sgst').textContent=fmt(gstAmt/2);
-    document.getElementById('r-igst').textContent=fmt(gstAmt);
+    if(bizMode==='individual'){
+      document.getElementById('cgst-r').textContent=half+'%';
+      document.getElementById('sgst-r').textContent=half+'%';
+      document.getElementById('igst-r').textContent=rate+'%';
+      document.getElementById('r-cgst').textContent=fmt(gstAmt/2);
+      document.getElementById('r-sgst').textContent=fmt(gstAmt/2);
+      document.getElementById('r-igst').textContent=fmt(gstAmt);
+    } else {
+      // Business mode: show CGST + SGST (intra-state) and IGST (inter-state)
+      document.getElementById('cgst-r').textContent=half+'%';
+      document.getElementById('sgst-r').textContent=half+'%';
+      document.getElementById('igst-r').textContent=rate+'% (inter-state)';
+      document.getElementById('r-cgst').textContent=fmt(gstAmt/2);
+      document.getElementById('r-sgst').textContent=fmt(gstAmt/2);
+      document.getElementById('r-igst').textContent=fmt(gstAmt);
+    }
     if(chartInst)chartInst.destroy();
-    chartInst=new Chart(document.getElementById('chart').getContext('2d'),{type:'bar',data:{labels:['Original','GST','Final'],datasets:[{data:[original,gstAmt,final],backgroundColor:['#3b82f6','#ef4444','#22c55e'],borderRadius:4,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#1e1e1e'},ticks:{callback:v=>fmt(v),maxTicksLimit:6}}}}});
+    chartInst=new Chart(document.getElementById('chart').getContext('2d'),{type:'bar',data:{labels:['Original','GST','Final'],datasets:[{data:[original,gstAmt,final],backgroundColor:['#3b82f6','#ef4444','#22c55e'],borderRadius:4,borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.parsed.y)}}},scales:{x:{grid:{display:false}},y:{grid:{color:cColor()},ticks:{callback:v=>fmt(v),maxTicksLimit:6}}}}});
   }
   calc();
 </script>

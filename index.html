@@ -60,8 +60,90 @@
     color: var(--muted);
     line-height: 1.6;
     max-width: 480px;
-    margin: 0 auto;
+    margin: 0 auto 28px;
   }
+  .hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    transition: opacity 0.15s;
+    display: inline-block;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary {
+    background: none;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+    display: inline-block;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* FEATURED */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 800px) { .featured-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .featured-grid { grid-template-columns: 1fr; } }
+  .featured-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 20px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    cursor: pointer;
+  }
+  .featured-card:hover { border-color: var(--accent); background: var(--accent-dim); transform: translateY(-2px); }
+  .featured-card .card-icon { font-size: 26px; }
+  .featured-card .card-name { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+  .featured-card .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .featured-card .card-hint { font-size: 11px; color: var(--accent); margin-top: 4px; }
+  .featured-card .card-arrow { margin-top: auto; padding-top: 8px; font-size: 12px; color: var(--accent); opacity: 0; transition: opacity 0.15s; }
+  .featured-card:hover .card-arrow { opacity: 1; }
+
+  /* CATEGORY TABS */
+  .cat-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .cat-tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .cat-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cat-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
 
   /* SECTION */
   .section {
@@ -99,16 +181,18 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    transition: border-color 0.15s, background 0.15s;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
     cursor: pointer;
   }
   .card:hover {
     border-color: var(--accent);
     background: var(--accent-dim);
+    transform: translateY(-1px);
   }
   .card-icon { font-size: 20px; }
   .card-name { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
   .card-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .card-hint { font-size: 11px; color: var(--accent); opacity: 0.8; margin-top: 2px; }
   .card-arrow {
     margin-top: 4px;
     font-size: 12px;
@@ -224,123 +308,191 @@
 </nav>
 
 <div class="hero">
-  <h1>Smart tools for<br><span>smarter money</span> decisions</h1>
-  <p>Free financial calculators built for everyday Indians. No ads, no signup, no nonsense — just numbers that matter.</p>
+  <h1>Understand your money.<br><span>Not just calculate it.</span></h1>
+  <p>Simple financial tools for real decisions.</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="#calculators">Start Calculating</a>
+    <a class="btn-secondary" href="#categories">Explore Tools</a>
+  </div>
 </div>
 
-<!-- Investment Calculators -->
+<!-- Featured Calculators -->
 <div class="section">
-  <div class="section-title"><span>📈</span>Investment Calculators</div>
-  <div class="cards">
-    <a class="card" href="sip.html">
+  <div class="section-title"><span>⭐</span>Featured Calculators</div>
+  <div class="featured-grid">
+    <a class="featured-card" href="sip.html">
       <div class="card-icon">💹</div>
       <div class="card-name">SIP Calculator</div>
       <div class="card-desc">Calculate wealth from monthly systematic investments</div>
+      <div class="card-hint">Best for long-term investment</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="lumpsum.html">
+    <a class="featured-card" href="emi.html">
+      <div class="card-icon">🏠</div>
+      <div class="card-name">EMI Calculator</div>
+      <div class="card-desc">Monthly loan installment for home, car or personal loan</div>
+      <div class="card-hint">Know your loan repayment</div>
+      <div class="card-arrow">Open →</div>
+    </a>
+    <a class="featured-card" href="tax.html">
+      <div class="card-icon">🇮🇳</div>
+      <div class="card-name">Income Tax Calculator</div>
+      <div class="card-desc">Old vs New Regime comparison for FY 2025-26</div>
+      <div class="card-hint">Pick the better tax regime</div>
+      <div class="card-arrow">Open →</div>
+    </a>
+    <a class="featured-card" href="gst.html">
+      <div class="card-icon">🧾</div>
+      <div class="card-name">GST Calculator</div>
+      <div class="card-desc">Add or remove GST with CGST/SGST/IGST breakup</div>
+      <div class="card-hint">18% applies to most services</div>
+      <div class="card-arrow">Open →</div>
+    </a>
+  </div>
+</div>
+
+<!-- Category Navigation -->
+<div class="section" id="categories">
+  <div class="section-title"><span>🗂️</span>Browse by Category</div>
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="filterCat('all', this)">All</button>
+    <button class="cat-tab" onclick="filterCat('investing', this)">📈 Investing</button>
+    <button class="cat-tab" onclick="filterCat('savings', this)">🏦 Savings</button>
+    <button class="cat-tab" onclick="filterCat('loans', this)">🏠 Loans</button>
+    <button class="cat-tab" onclick="filterCat('tax', this)">🧾 Tax</button>
+    <button class="cat-tab" onclick="filterCat('planning', this)">🎯 Planning</button>
+  </div>
+</div>
+
+<div id="calculators">
+<!-- Investment Calculators -->
+<div class="section" data-cat="investing">
+  <div class="section-title"><span>📈</span>Investment Calculators</div>
+  <div class="cards">
+    <a class="card" href="sip.html" data-cat="investing">
+      <div class="card-icon">💹</div>
+      <div class="card-name">SIP Calculator</div>
+      <div class="card-desc">Calculate wealth from monthly systematic investments</div>
+      <div class="card-hint">Best for long-term investment</div>
+      <div class="card-arrow">Open →</div>
+    </a>
+    <a class="card" href="lumpsum.html" data-cat="investing">
       <div class="card-icon">💰</div>
       <div class="card-name">Lumpsum Calculator</div>
       <div class="card-desc">One-time investment growth over time</div>
+      <div class="card-hint">Ideal for one-shot investments</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="stepup.html">
+    <a class="card" href="stepup.html" data-cat="investing">
       <div class="card-icon">🚀</div>
       <div class="card-name">Step-Up SIP</div>
       <div class="card-desc">SIP with annual increment for faster wealth building</div>
+      <div class="card-hint">Boosts corpus with salary hikes</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="cagr.html">
+    <a class="card" href="cagr.html" data-cat="investing">
       <div class="card-icon">📊</div>
       <div class="card-name">CAGR Calculator</div>
       <div class="card-desc">Compounded annual growth rate on any investment</div>
+      <div class="card-hint">Measure true investment growth</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="compound.html">
+    <a class="card" href="compound.html" data-cat="investing">
       <div class="card-icon">♾️</div>
       <div class="card-name">Compound Interest</div>
       <div class="card-desc">Power of compounding on your savings</div>
+      <div class="card-hint">Time is your best asset</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="compare.html">
+    <a class="card" href="compare.html" data-cat="investing">
       <div class="card-icon">⚖️</div>
       <div class="card-name">Investment Comparison</div>
-      <div class="card-desc">Compare SIP vs FD, SIP vs Lumpsum, FD vs RD side by side</div>
+      <div class="card-desc">Compare SIP vs FD, SIP vs Lumpsum, and more side by side</div>
+      <div class="card-hint">See which investment wins</div>
       <div class="card-arrow">Open →</div>
     </a>
   </div>
 </div>
 
 <!-- Savings & Deposits -->
-<div class="section">
+<div class="section" data-cat="savings">
   <div class="section-title"><span>🏦</span>Savings & Deposits</div>
   <div class="cards">
-    <a class="card" href="fd.html">
+    <a class="card" href="fd.html" data-cat="savings">
       <div class="card-icon">🏛️</div>
       <div class="card-name">FD Calculator</div>
       <div class="card-desc">Fixed deposit maturity with quarterly compounding</div>
+      <div class="card-hint">Low risk, low return</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="rd.html">
+    <a class="card" href="rd.html" data-cat="savings">
       <div class="card-icon">📅</div>
       <div class="card-name">RD Calculator</div>
       <div class="card-desc">Recurring deposit returns month by month</div>
+      <div class="card-hint">Disciplined monthly saving</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="ppf.html">
+    <a class="card" href="ppf.html" data-cat="savings">
       <div class="card-icon">🔒</div>
       <div class="card-name">PPF Calculator</div>
       <div class="card-desc">Public Provident Fund 15-year maturity amount</div>
+      <div class="card-hint">Tax-free, government-backed</div>
       <div class="card-arrow">Open →</div>
     </a>
   </div>
 </div>
 
 <!-- Loan & Tax -->
-<div class="section">
+<div class="section" data-cat="loans tax">
   <div class="section-title"><span>🧾</span>Loan & Tax</div>
   <div class="cards">
-    <a class="card" href="emi.html">
+    <a class="card" href="emi.html" data-cat="loans">
       <div class="card-icon">🏠</div>
       <div class="card-name">EMI Calculator</div>
       <div class="card-desc">Monthly loan installment for home, car or personal loan</div>
+      <div class="card-hint">Know your loan repayment</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="prepayment.html">
+    <a class="card" href="prepayment.html" data-cat="loans">
       <div class="card-icon">💸</div>
       <div class="card-name">Loan Prepayment</div>
       <div class="card-desc">Extra monthly payment → interest saved &amp; years cut</div>
+      <div class="card-hint">Pay less interest overall</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="gst.html">
+    <a class="card" href="gst.html" data-cat="tax">
       <div class="card-icon">🧾</div>
       <div class="card-name">GST Calculator</div>
-      <div class="card-desc">Add or remove GST with CGST/SGST breakup</div>
+      <div class="card-desc">Add or remove GST with CGST/SGST/IGST breakup</div>
+      <div class="card-hint">18% applies to most services</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="tax.html">
+    <a class="card" href="tax.html" data-cat="tax">
       <div class="card-icon">🇮🇳</div>
       <div class="card-name">Income Tax Calculator</div>
       <div class="card-desc">Old vs New Regime comparison for FY 2025-26</div>
+      <div class="card-hint">Pick the better tax regime</div>
       <div class="card-arrow">Open →</div>
     </a>
   </div>
 </div>
 
 <!-- Planning -->
-<div class="section">
+<div class="section" data-cat="planning">
   <div class="section-title"><span>🎯</span>Planning</div>
   <div class="cards">
-    <a class="card" href="retirement.html">
+    <a class="card" href="retirement.html" data-cat="planning">
       <div class="card-icon">🏖️</div>
       <div class="card-name">Retirement Calculator</div>
       <div class="card-desc">Corpus needed and monthly SIP to retire comfortably</div>
+      <div class="card-hint">Start early, retire free</div>
       <div class="card-arrow">Open →</div>
     </a>
-    <a class="card" href="goal.html">
+    <a class="card" href="goal.html" data-cat="planning">
       <div class="card-icon">🎯</div>
       <div class="card-name">Goal Planner</div>
       <div class="card-desc">Set a target amount &amp; time → get your monthly SIP and lumpsum needed</div>
+      <div class="card-hint">Plan every financial goal</div>
       <div class="card-arrow">Open →</div>
     </a>
   </div>
@@ -395,6 +547,21 @@
     if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
     if (typeof updateChartTheme === 'function') { updateChartTheme(); }
     try { if (typeof calc === 'function') { calc(); } } catch(e) {}
+  }
+
+  /* ── Category filter ── */
+  function filterCat(cat, btn) {
+    document.querySelectorAll('.cat-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    var sections = document.querySelectorAll('#calculators .section');
+    sections.forEach(function(sec) {
+      if (cat === 'all') {
+        sec.style.display = '';
+      } else {
+        var secCat = sec.getAttribute('data-cat') || '';
+        sec.style.display = secCat.indexOf(cat) !== -1 ? '' : 'none';
+      }
+    });
   }
 
   /* ── Back to top ── */
