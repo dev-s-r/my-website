@@ -433,8 +433,8 @@
       document.getElementById('insight-invested').textContent =
         'You invested ' + fmt(invested) + ' over ' + yrs + (yrs === 1 ? ' year' : ' years');
       document.getElementById('insight-returns').textContent =
-        'You earned ' + fmt(returns) + ' in returns — ' +
-        (returns > invested ? 'more than what you put in!' : 'keep investing longer for bigger returns');
+        'You earned ' + fmt(returns) + ' in returns' +
+        (returns > invested ? ' — more than what you put in!' : (yrs < 5 ? ' — try a 5+ year horizon for bigger gains' : ''));
       document.getElementById('insight-multiplier').textContent =
         'Your money grew ' + multiplier + 'x';
     }

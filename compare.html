@@ -234,7 +234,6 @@
           monthsPrepay++;
           if (bal <= 0) break;
         }
-        const interestSaved = interestStd - (totalPaidPrepay - principal - extra * monthsPrepay + extra * monthsPrepay - (principal - principal));
         const actualInterestPrepay = totalPaidPrepay - principal - (extra * monthsPrepay);
         const interestSavedActual = interestStd - actualInterestPrepay;
         const yearsSaved = (n - monthsPrepay) / 12;

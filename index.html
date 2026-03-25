@@ -568,7 +568,7 @@
     btn.classList.add('active');
     document.querySelectorAll('#calc-grid .card').forEach(function(card) {
       var cardCat = card.getAttribute('data-cat') || '';
-      card.style.display = (cat === 'all' || cardCat === cat) ? '' : 'none';
+      card.style.display = (cat === 'all' || cardCat.includes(cat)) ? '' : 'none';
     });
   }
 
