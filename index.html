@@ -604,7 +604,7 @@
   <p>A financial decision tool built for real Indians — clean, fast, no ads.</p>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="search" id="search-input" class="search-input" placeholder="Search calculators… e.g. SIP, EMI, tax, retirement" autocomplete="off" oninput="onSearch(this.value)" aria-label="Search calculators">
+    <input type="search" id="search-input" class="search-input" placeholder="Search calculators… e.g. SIP, EMI, tax, retirement" autocomplete="off" oninput="debouncedSearch(this.value)" aria-label="Search calculators">
     <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search" aria-label="Clear search">✕</button>
   </div>
   <div class="hero-btns">
@@ -843,20 +843,21 @@
   /* ── Fuzzy search helpers ── */
   function damerauLevenshtein(a, b) {
     var m = a.length, n = b.length;
-    var dp = [];
-    for (var i = 0; i <= m; i++) {
-      dp[i] = [];
-      for (var j = 0; j <= n; j++) dp[i][j] = i === 0 ? j : (j === 0 ? i : 0);
-    }
+    var w = n + 1;
+    /* Use a flat Int32Array instead of an array-of-arrays: contiguous memory
+       gives better CPU-cache locality and avoids per-row array allocation. */
+    var dp = new Int32Array((m + 1) * w);
+    for (var i = 0; i <= m; i++) dp[i * w] = i;
+    for (var j = 0; j <= n; j++) dp[j] = j;
     for (var i = 1; i <= m; i++) {
       for (var j = 1; j <= n; j++) {
         var cost = a[i-1] === b[j-1] ? 0 : 1;
-        dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+        dp[i*w+j] = Math.min(dp[(i-1)*w+j] + 1, dp[i*w+(j-1)] + 1, dp[(i-1)*w+(j-1)] + cost);
         if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1])
-          dp[i][j] = Math.min(dp[i][j], dp[i-2][j-2] + cost);
+          dp[i*w+j] = Math.min(dp[i*w+j], dp[(i-2)*w+(j-2)] + cost);
       }
     }
-    return dp[m][n];
+    return dp[m*w+n];
   }
 
   function fuzzyMatch(query, text) {
@@ -874,22 +875,37 @@
   }
 
   /* ── Search ── */
+
+  /* Cache each card's search text so DOM queries are not repeated on every
+     keystroke.  Built lazily on the first call to onSearch(). */
+  var _cardData = null;
+  function _buildCardData() {
+    if (_cardData) return _cardData;
+    _cardData = [];
+    document.querySelectorAll('#calc-grid .card').forEach(function(card) {
+      _cardData.push({
+        el: card,
+        text: [
+          (card.querySelector('.card-name')  || {textContent: ''}).textContent,
+          (card.querySelector('.card-desc')  || {textContent: ''}).textContent,
+          (card.querySelector('.card-hint')  || {textContent: ''}).textContent,
+          card.getAttribute('data-keywords') || ''
+        ].join(' ')
+      });
+    });
+    return _cardData;
+  }
+
   function onSearch(query) {
     var clearBtn = document.getElementById('search-clear');
     if (clearBtn) clearBtn.style.display = query ? '' : 'none';
 
-    var cards = document.querySelectorAll('#calc-grid .card');
+    var data = _buildCardData();
     var visible = 0;
 
-    cards.forEach(function(card) {
-      var searchText = [
-        card.querySelector('.card-name')  ? card.querySelector('.card-name').textContent  : '',
-        card.querySelector('.card-desc')  ? card.querySelector('.card-desc').textContent  : '',
-        card.querySelector('.card-hint')  ? card.querySelector('.card-hint').textContent  : '',
-        card.getAttribute('data-keywords') || ''
-      ].join(' ');
-      var match = !query || fuzzyMatch(query, searchText);
-      card.style.display = match ? '' : 'none';
+    data.forEach(function(item) {
+      var match = !query || fuzzyMatch(query, item.text);
+      item.el.style.display = match ? '' : 'none';
       if (match) visible++;
     });
 
@@ -908,6 +924,18 @@
       var allTab = document.getElementById('cat-all');
       if (allTab) allTab.classList.add('active');
     }
+  }
+
+  /* Debounce: wait 150 ms after the last keystroke before running the search,
+     avoiding expensive fuzzy-match work on every intermediate character.
+     The clear-button visibility is updated immediately so users see instant
+     feedback that their input was registered. */
+  var _searchTimer = null;
+  function debouncedSearch(query) {
+    var clearBtn = document.getElementById('search-clear');
+    if (clearBtn) clearBtn.style.display = query ? '' : 'none';
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(function() { onSearch(query); }, 150);
   }
 
   function clearSearch() {
