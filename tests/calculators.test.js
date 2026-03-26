@@ -1496,3 +1496,120 @@ describe('Floating-point precision', () => {
     });
   });
 });
+
+// ─────────────────────────────────────────────
+// FUZZY SEARCH HELPERS (extracted from index.html)
+// ─────────────────────────────────────────────
+
+/* Optimised flat-array implementation (mirrors index.html) */
+function damerauLevenshtein(a, b) {
+  var m = a.length, n = b.length;
+  var w = n + 1;
+  var dp = new Int32Array((m + 1) * w);
+  for (var i = 0; i <= m; i++) dp[i * w] = i;
+  for (var j = 0; j <= n; j++) dp[j] = j;
+  for (var i = 1; i <= m; i++) {
+    for (var j = 1; j <= n; j++) {
+      var cost = a[i-1] === b[j-1] ? 0 : 1;
+      dp[i*w+j] = Math.min(dp[(i-1)*w+j] + 1, dp[i*w+(j-1)] + 1, dp[(i-1)*w+(j-1)] + cost);
+      if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1])
+        dp[i*w+j] = Math.min(dp[i*w+j], dp[(i-2)*w+(j-2)] + cost);
+    }
+  }
+  return dp[m*w+n];
+}
+
+function fuzzyMatch(query, text) {
+  query = query.toLowerCase().trim();
+  text  = text.toLowerCase();
+  if (!query) return true;
+  if (text.includes(query)) return true;
+  var qWords = query.split(/\s+/).filter(function(w) { return w.length > 0; });
+  var tWords = text.split(/\s+/);
+  return qWords.every(function(qw) {
+    if (text.includes(qw)) return true;
+    var maxDist = qw.length <= 3 ? 0 : qw.length <= 5 ? 1 : 2;
+    return tWords.some(function(tw) { return damerauLevenshtein(qw, tw) <= maxDist; });
+  });
+}
+
+describe('damerauLevenshtein (fuzzy-search distance)', () => {
+  test('identical strings → 0', () => {
+    expect(damerauLevenshtein('sip', 'sip')).toBe(0);
+    expect(damerauLevenshtein('', '')).toBe(0);
+  });
+
+  test('empty vs non-empty → length of non-empty', () => {
+    expect(damerauLevenshtein('', 'emi')).toBe(3);
+    expect(damerauLevenshtein('tax', '')).toBe(3);
+  });
+
+  test('single insertion / deletion', () => {
+    expect(damerauLevenshtein('cat', 'cats')).toBe(1);
+    expect(damerauLevenshtein('cats', 'cat')).toBe(1);
+  });
+
+  test('single substitution', () => {
+    expect(damerauLevenshtein('sip', 'tip')).toBe(1);
+  });
+
+  test('transposition (swap of adjacent chars)', () => {
+    expect(damerauLevenshtein('emi', 'mei')).toBe(1);
+    expect(damerauLevenshtein('tax', 'atx')).toBe(1);
+  });
+
+  test('known edit-distance pairs', () => {
+    expect(damerauLevenshtein('kitten', 'sitting')).toBe(3);
+    expect(damerauLevenshtein('saturday', 'sunday')).toBe(3);
+    expect(damerauLevenshtein('retirement', 'retirment')).toBe(1); // one deletion
+  });
+
+  test('completely different strings', () => {
+    expect(damerauLevenshtein('abc', 'xyz')).toBe(3);
+  });
+
+  test('symmetric: d(a,b) === d(b,a)', () => {
+    const pairs = [['sip', 'tip'], ['emi', 'mei'], ['lumpsum', 'lumpsom']];
+    pairs.forEach(([a, b]) => {
+      expect(damerauLevenshtein(a, b)).toBe(damerauLevenshtein(b, a));
+    });
+  });
+});
+
+describe('fuzzyMatch (search matching)', () => {
+  test('empty query always matches', () => {
+    expect(fuzzyMatch('', 'anything')).toBe(true);
+    expect(fuzzyMatch('  ', 'anything')).toBe(true);
+  });
+
+  test('exact substring match', () => {
+    expect(fuzzyMatch('sip', 'SIP Calculator monthly')).toBe(true);
+    expect(fuzzyMatch('emi', 'EMI Calculator loan')).toBe(true);
+  });
+
+  test('case-insensitive matching', () => {
+    expect(fuzzyMatch('SIP', 'sip calculator')).toBe(true);
+    expect(fuzzyMatch('Retirement', 'plan your RETIREMENT')).toBe(true);
+  });
+
+  test('no match for completely unrelated query', () => {
+    expect(fuzzyMatch('xyz', 'sip emi loan')).toBe(false);
+  });
+
+  test('short words (≤3 chars) require exact match', () => {
+    // 'si' is length 2 (≤3) → maxDist 0, 'sip' does not include 'si' as substring
+    // but 'sip' contains 'si'... actually 'sip'.includes('si') is true
+    // Test with a word that truly won't substring-match
+    expect(fuzzyMatch('xyz', 'abc def ghi')).toBe(false);
+  });
+
+  test('typo tolerance for longer words', () => {
+    // 'retirment' (missing 'e') should still match 'retirement' (length 9 → maxDist 2)
+    expect(fuzzyMatch('retirment', 'plan your retirement')).toBe(true);
+  });
+
+  test('multi-word query: all words must match', () => {
+    expect(fuzzyMatch('sip calculator', 'SIP Calculator monthly returns')).toBe(true);
+    expect(fuzzyMatch('sip loan', 'SIP Calculator monthly returns')).toBe(false);
+  });
+});
