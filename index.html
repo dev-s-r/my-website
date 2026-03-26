@@ -879,6 +879,7 @@
   /* Cache each card's search text so DOM queries are not repeated on every
      keystroke.  Built lazily on the first call to onSearch(). */
   var _cardData = null;
+  var _hasScrolledToResults = false;
   function _buildCardData() {
     if (_cardData) return _cardData;
     _cardData = [];
@@ -923,6 +924,13 @@
       document.querySelectorAll('.cat-tab').forEach(function(t) { t.classList.remove('active'); });
       var allTab = document.getElementById('cat-all');
       if (allTab) allTab.classList.add('active');
+      var calcSection = document.getElementById('calculators');
+      if (calcSection && !_hasScrolledToResults) {
+        _hasScrolledToResults = true;
+        calcSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      _hasScrolledToResults = false;
     }
   }
 
