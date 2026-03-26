@@ -103,6 +103,23 @@
   .theme-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
   @media (max-width: 640px) { .nav-links { display: none; } }
 
+  /* ── AVATAR INITIALS ── */
+  .avatar-initials {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    font-family: 'Manrope', sans-serif;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+
   /* ── PAGE WRAPPER ── */
   .page {
     max-width: 720px;
@@ -179,15 +196,26 @@
   }
   .section-label span { color: var(--accent); margin-right: 8px; }
 
-  /* ── STORY ── */
-  .story p {
+  /* ── STORY / HONEST PART ── */
+  .story p, .honest-part p {
     font-size: 14px;
     color: var(--muted);
     line-height: 1.75;
     margin-bottom: 16px;
   }
-  .story p:last-child { margin-bottom: 0; }
-  .story strong { color: var(--text); font-weight: 600; }
+  .story p:last-child, .honest-part p:last-child { margin-bottom: 0; }
+  .story strong, .honest-part strong { color: var(--text); font-weight: 600; }
+  .honest-part ul {
+    padding-left: 20px;
+    margin-top: 12px;
+  }
+  .honest-part ul li {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 8px;
+  }
+  .honest-part ul li:last-child { margin-bottom: 0; }
 
   /* ── INTEREST CARDS ── */
   .interests {
@@ -224,6 +252,24 @@
     font-size: 12px;
     color: var(--muted);
     line-height: 1.55;
+  }
+
+  .interest-card-link {
+    text-decoration: none;
+    display: block;
+  }
+  .interest-card-link .interest-card {
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .interest-card-link:hover .interest-card {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .interest-ext {
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 6px;
+    font-weight: 500;
   }
 
   /* ── RIGHT NOW ── */
@@ -368,33 +414,40 @@
 
   <!-- Hero -->
   <div class="about-hero">
-    <div class="avatar">👨‍💻</div>
+    <div class="avatar-initials">DS</div>
     <div>
       <h1>Hey, I'm Dev 👋</h1>
       <p>
-        Finance student. CA firm guy. Jaipur local.<br>
-        Built this so you don't have to use those ad-infested calculators.
+        <strong>Finance student. CA firm. Jaipur.</strong><br>
+        Got tired of terrible financial calculators and built better ones. No grand vision — just frustration with bad tools.
       </p>
       <div class="tags">
         <span class="tag">B.Com · Sem 5</span>
-        <span class="tag">Open to opportunities</span>
+        <span class="tag">CA Firm · 2 years</span>
         <span class="tag">Jaipur, Rajasthan</span>
+        <span class="tag">Finance + Data</span>
       </div>
     </div>
   </div>
 
-  <!-- The story -->
+  <!-- The work -->
   <div class="section-block">
-    <div class="section-label"><span>📖</span>The story</div>
+    <div class="section-label"><span>📖</span>The work</div>
     <div class="story">
       <p>
-        I'm a <strong>20-year-old B.Com student</strong> at University Commerce College, Jaipur — currently in my 5th semester under the NEP 2020 curriculum. Alongside college, I've been working at a <strong>CA firm for nearly two years</strong>, handling real accounting and taxation work. So yeah, the finance stuff here isn't theoretical — I actually use this every day.
+        5th semester B.Com at University Commerce College, Jaipur under NEP 2020. Alongside college I've been at a CA firm for nearly two years — real clients, real filings, real consequences if something's off.
       </p>
       <p>
-        CalcByDev started from pure frustration. Every financial calculator in India is either buried under 11 ads, asks you to "sign up to see results," or just looks terrible. I figured — I know this stuff, I can code, why not just build it properly? No ads. No signup. No nonsense.
+        Day to day that means <strong>GST returns</strong> (GSTR-1, GSTR-3B), <strong>ITR filings</strong>, bookkeeping in Tally, and assisting in audits. It teaches you things no textbook bothers explaining — like why GST reconciliation is painful, or how most small businesses don't understand their own tax liability until it's already a problem.
       </p>
       <p>
-        Outside of this, I'm curious about <strong>data science and AI</strong>, follow crypto markets more than I probably should, and have strong opinions about Jaipur's café scene. Also a big Seedhe Maut listener — if that tells you anything about my taste.
+        Two years of real client data changes how you think about finance. It stops being abstract.
+      </p>
+      <p>
+        Every financial calculator I found was either drowning in ads, spread across five different websites, or looked like it hadn't been updated since 2009. So I built CalcByDev — <strong>15 calculators, one place, no ads, no signup.</strong> The one I'm most proud of is the Prepayment vs Investment calculator, because it helps you make a decision instead of just handing you a number.
+      </p>
+      <p>
+        Built the whole thing without a coding background. Used AI tools to generate and fix code, tested everything manually, refined based on how it felt to use. That process taught me more than any course would have.
       </p>
     </div>
   </div>
@@ -404,34 +457,37 @@
     <div class="section-label"><span>✨</span>A few things about me</div>
     <div class="interests">
       <div class="interest-card">
-        <div class="interest-icon">🧾</div>
-        <div class="interest-title">Reads tax circulars for fun</div>
-        <div class="interest-desc">Genuinely. Two years at a CA firm does something to you. GST amendments are kind of interesting if you squint.</div>
-      </div>
-      <div class="interest-card">
         <div class="interest-icon">📈</div>
-        <div class="interest-title">Crypto market watcher</div>
-        <div class="interest-desc">Tracks charts more than is healthy. Has opinions on tokenomics. Learns from both — the wins and the lessons.</div>
+        <div class="interest-title">Crypto markets</div>
+        <div class="interest-desc">More about understanding how these systems work than chasing returns. Small amounts, mostly learning how it all fits together.</div>
       </div>
       <div class="interest-card">
-        <div class="interest-icon">☕</div>
-        <div class="interest-title">Jaipur café connoisseur</div>
-        <div class="interest-desc">Has a running mental ranking of every café in the city. Cold coffee. Corner seat. Good Wi-Fi. Non-negotiable.</div>
+        <div class="interest-icon">🥾</div>
+        <div class="interest-title">Local treks</div>
+        <div class="interest-desc">Trails around Jaipur, nothing extreme. Just getting out of the screen. The city has better terrain than people give it credit for.</div>
       </div>
-      <div class="interest-card">
-        <div class="interest-icon">🎧</div>
-        <div class="interest-title">Seedhe Maut on repeat</div>
-        <div class="interest-desc">Desi hip hop, specifically the kind that actually says something. Dopahar is a perfect album, not taking questions.</div>
-      </div>
+      <a class="interest-card-link" href="https://music.youtube.com/channel/UCTFjno2xr_SllG0RQKaCcuw?si=64JCrwdCMK04CLag" target="_blank" rel="noopener noreferrer">
+        <div class="interest-card">
+          <div class="interest-icon">🎧</div>
+          <div class="interest-title">Seedhe Maut, Chaar Diwaari</div>
+          <div class="interest-desc">Lyrics first, always. If the writing is lazy the beat doesn't save it. Dopahar is a perfect album — not taking questions.</div>
+          <div class="interest-ext">↗ Open YT Music</div>
+        </div>
+      </a>
       <div class="interest-card">
         <div class="interest-icon">🌍</div>
-        <div class="interest-title">Thinks about geopolitics way too much</div>
-        <div class="interest-desc">Goes from calculating SIP returns to reading about Indo-Pacific strategy. The brain does what it wants.</div>
+        <div class="interest-title">Geopolitics rabbit holes</div>
+        <div class="interest-desc">Goes from calculating EMIs to reading about Indo-Pacific strategy in the same afternoon. The brain does what it wants.</div>
       </div>
       <div class="interest-card">
-        <div class="interest-icon">🤖</div>
-        <div class="interest-title">Learning data &amp; AI on the side</div>
-        <div class="interest-desc">Python → statistics → data analysis is the path. Long game. Finance by day, data engineering by curiosity.</div>
+        <div class="interest-icon">🔨</div>
+        <div class="interest-title">Learns by building</div>
+        <div class="interest-desc">Can't absorb things through courses alone. Needs to actually make something — break it, fix it, ship it. That's when concepts stick.</div>
+      </div>
+      <div class="interest-card">
+        <div class="interest-icon">🔍</div>
+        <div class="interest-title">Curious about how things work</div>
+        <div class="interest-desc">Not just finance. Systems, patterns, why things are the way they are. Can't accept a surface-level answer and move on.</div>
       </div>
     </div>
   </div>
@@ -442,29 +498,51 @@
     <div class="now-list">
       <div class="now-item">
         <div class="now-dot"></div>
-        <div><strong>5th semester, B.Com</strong> — University Commerce College, Jaipur (Rajasthan University · NEP 2020)</div>
+        <div><strong>Working at a CA firm</strong> — GST, ITR, bookkeeping, audits. Going on 2 years.</div>
       </div>
       <div class="now-item">
         <div class="now-dot"></div>
-        <div><strong>Working at a CA firm</strong> — accounting, taxation, GST compliance. Going on 2 years.</div>
+        <div><strong>5th semester, B.Com</strong> — University Commerce College, Jaipur · Rajasthan University · NEP 2020.</div>
       </div>
       <div class="now-item">
         <div class="now-dot"></div>
-        <div><strong>Building CalcByDev</strong> — 15 free calculators live, more in the works. Always improving.</div>
+        <div><strong>Building CalcByDev</strong> — 15 calculators live, always improving. Treating it like a real product, not a one-time thing.</div>
       </div>
+      <div class="now-item">
+        <div class="now-dot"></div>
+        <div><strong>Exploring finance + data</strong> — slowly expanding beyond traditional finance into the technical side.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The honest part -->
+  <div class="section-block">
+    <div class="section-label"><span>💬</span>The honest part</div>
+    <div class="honest-part">
+      <p>
+        No fixed five-year plan. The direction is somewhere at the intersection of finance and data — still figuring out exactly what that looks like. I'd rather be honest about that than pretend I have a roadmap I don't.
+      </p>
+      <p>
+        I'm aware of my gaps — no formal coding background, technical concepts take longer than I'd like, consistency is something I actively have to work at, and I overthink more than I should.
+      </p>
+      <ul>
+        <li>Working on all of it through <strong>actual projects, not just plans.</strong></li>
+        <li>Shipping something real forces consistency in a way that planning never does — <strong>that's what CalcByDev is for.</strong></li>
+      </ul>
     </div>
   </div>
 
   <!-- Find me -->
   <div class="section-block">
     <div class="section-label"><span>🔗</span>Find me</div>
+    <p style="font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:16px;">If any of this resonates — finance, data, building useful things, or just want to connect — I'm around.</p>
     <div class="find-me">
-      <a class="btn-primary" href="https://www.linkedin.com/in/devsr" target="_blank" rel="noopener noreferrer">
+      <a class="btn-primary" href="https://www.linkedin.com/in/dev-singh-rathore-009b58246?trk=contact-info" target="_blank" rel="noopener noreferrer">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.63-1.85 3.35-1.85 3.58 0 4.24 2.36 4.24 5.43v6.31zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
         LinkedIn
       </a>
       <a class="btn-secondary" href="index.html">
-        ← Back to Calculators
+        ← All Calculators
       </a>
     </div>
   </div>
