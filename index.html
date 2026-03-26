@@ -76,12 +76,13 @@
   }
   .logo {
     text-decoration: none; flex-shrink: 0;
-    display: flex; align-items: center;
+    display: flex; align-items: center; gap: 8px;
   }
-  .logo img { height: 28px; width: auto; display: block; }
-  .logo-light-img { display: none; }
-  [data-theme="light"] .logo-dark-img { display: none; }
-  [data-theme="light"] .logo-light-img { display: block; }
+  .logo-icon { width: 28px; height: 28px; object-fit: contain; display: block; transition: transform 0.2s ease; }
+  .logo:hover .logo-icon { transform: scale(1.05); }
+  .logo-text { font-size: 18px; font-weight: 600; color: var(--text); }
+  .accent { color: #8B5CF6; }
+  @media (max-width: 600px) { .logo-text { font-size: 16px; } }
   .nav-links { display: flex; align-items: center; gap: 4px; }
   .nav-link {
     font-size: 13px; color: var(--muted); text-decoration: none;
@@ -584,8 +585,8 @@
 
 <nav>
   <a class="logo" href="index.html">
-    <img class="logo-dark-img" src="logo-dark.svg" alt="CalcByDev" height="28" width="150">
-    <img class="logo-light-img" src="logo-light.svg" alt="CalcByDev" height="28" width="150">
+    <img class="logo-icon" src="logo-icon.svg" alt="CalcByDev" width="28" height="28">
+    <span class="logo-text">Calc<span class="accent">ByDev</span></span>
   </a>
   <div class="nav-links">
     <a class="nav-link" href="#calculators">Calculators</a>
