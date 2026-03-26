@@ -46,8 +46,11 @@
     backdrop-filter: blur(8px);
     z-index: 100;
   }
-  .logo { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; text-decoration: none; color: var(--text); }
-  .logo span { color: var(--accent); }
+  .logo { text-decoration: none; flex-shrink: 0; display: flex; align-items: center; }
+  .logo img { height: 28px; width: auto; display: block; }
+  .logo-light-img { display: none; }
+  [data-theme="light"] .logo-dark-img { display: none; }
+  [data-theme="light"] .logo-light-img { display: block; }
   .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
   .back:hover { color: var(--accent); }
   .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
@@ -213,7 +216,10 @@
 <body>
 
 <nav>
-  <a class="logo" href="index.html">Calc<span>ByDev</span></a>
+  <a class="logo" href="index.html">
+    <img class="logo-dark-img" src="logo-dark.svg" alt="CalcByDev" height="28" width="150">
+    <img class="logo-light-img" src="logo-light.svg" alt="CalcByDev" height="28" width="150">
+  </a>
   <a class="nav-link" href="compare.html">Compare</a>
   <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
 </nav>

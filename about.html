@@ -70,16 +70,13 @@
     gap: 24px;
   }
   .logo {
-    font-size: 18px; font-weight: 800; letter-spacing: -0.5px;
-    font-family: 'Manrope', sans-serif; color: var(--text);
     text-decoration: none; flex-shrink: 0;
+    display: flex; align-items: center;
   }
-  .logo span {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+  .logo img { height: 28px; width: auto; display: block; }
+  .logo-light-img { display: none; }
+  [data-theme="light"] .logo-dark-img { display: none; }
+  [data-theme="light"] .logo-light-img { display: block; }
   .nav-links { display: flex; align-items: center; gap: 4px; }
   .nav-link {
     font-size: 13px; color: var(--muted); text-decoration: none;
@@ -398,7 +395,10 @@
 <body>
 
 <nav>
-  <a class="logo" href="index.html">Calc<span>ByDev</span></a>
+  <a class="logo" href="index.html">
+    <img class="logo-dark-img" src="logo-dark.svg" alt="CalcByDev" height="28" width="150">
+    <img class="logo-light-img" src="logo-light.svg" alt="CalcByDev" height="28" width="150">
+  </a>
   <div class="nav-links">
     <a class="nav-link" href="index.html#calculators">Calculators</a>
     <a class="nav-link" href="compare.html">Compare</a>
