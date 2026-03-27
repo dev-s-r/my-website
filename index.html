@@ -346,43 +346,83 @@
     display: none;
   }
   .search-clear:hover { color: var(--text); }
+  /* ── SEARCH DROPDOWN (body-level, fixed) ── */
   .search-dropdown {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0; right: 0;
-    background: rgba(15,23,42,0.97);
-    border: 1px solid rgba(99,102,241,0.30);
-    border-radius: 12px;
-    overflow: hidden;
-    max-height: 320px;
-    overflow-y: auto;
-    z-index: 200;
+    position: fixed;
+    z-index: 99999;
     display: none;
-    backdrop-filter: blur(16px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    background: rgba(10,15,28,0.98);
+    border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 14px;
+    overflow: hidden;
+    max-height: 400px;
+    overflow-y: auto;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    animation: dropdownIn 0.18s cubic-bezier(0.16,1,0.3,1) both;
   }
+  @keyframes dropdownIn {
+    from { opacity: 0; transform: translateY(-6px) scaleY(0.96); }
+    to   { opacity: 1; transform: translateY(0) scaleY(1); }
+  }
+  .sd-header {
+    padding: 8px 14px 6px;
+    font-size: 11px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+  }
+  .sd-count { color: #6366F1; font-weight: 600; text-transform: none; letter-spacing: 0; }
   .search-dropdown-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 16px;
-    color: var(--text);
+    padding: 11px 14px;
+    color: #F1F5F9;
     text-decoration: none;
-    font-size: 14px;
-    transition: background 0.15s;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13.5px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.12s;
   }
   .search-dropdown-item:last-child { border-bottom: none; }
-  .search-dropdown-item:hover { background: rgba(99,102,241,0.12); }
-  .search-dropdown-item .sd-icon { font-size: 20px; line-height: 1; flex-shrink: 0; }
-  .search-dropdown-item .sd-name { font-weight: 500; }
-  .search-dropdown-empty {
-    padding: 14px 16px;
-    text-align: center;
-    color: var(--muted);
-    font-size: 13px;
+  .search-dropdown-item:hover,
+  .search-dropdown-item.sd-focused {
+    background: rgba(99,102,241,0.14);
+    box-shadow: inset 2px 0 0 #6366F1;
   }
-  .search-dropdown-empty strong { color: var(--text); }
+  .sd-icon {
+    font-size: 20px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(99,102,241,0.10);
+    border-radius: 9px;
+    flex-shrink: 0;
+  }
+  .sd-info { flex: 1; min-width: 0; }
+  .sd-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sd-desc { font-size: 11.5px; color: #94A3B8; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sd-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 20px;
+    background: rgba(99,102,241,0.15);
+    color: #6366F1; flex-shrink: 0;
+  }
+  .sd-arrow { color: #94A3B8; font-size: 14px; flex-shrink: 0; transition: transform 0.12s; }
+  .search-dropdown-item:hover .sd-arrow,
+  .search-dropdown-item.sd-focused .sd-arrow { transform: translateX(3px); color: #6366F1; }
+  mark.sd-hl { background: rgba(99,102,241,0.25); color: #F1F5F9; border-radius: 2px; padding: 0 1px; font-style: normal; }
+  .search-dropdown-empty { padding: 24px 16px; text-align: center; color: #94A3B8; font-size: 13px; }
+  .search-dropdown-empty strong { color: #F1F5F9; display: block; margin-bottom: 4px; }
+  .sd-suggestions { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .sd-suggestion-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: rgba(99,102,241,0.12); color: #6366F1;
+    cursor: pointer; border: 1px solid rgba(99,102,241,0.2);
+  }
   .no-results {
     grid-column: 1 / -1;
     text-align: center;
@@ -641,9 +681,13 @@
   <p>A financial decision tool built for real Indians — clean, fast, no ads.</p>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="search" id="search-input" class="search-input" placeholder="Search calculators… e.g. SIP, EMI, tax, retirement" autocomplete="off" oninput="debouncedSearch(this.value)" aria-label="Search calculators">
-    <button class="search-clear" id="search-clear" onclick="clearSearch()" title="Clear search" aria-label="Clear search">✕</button>
-    <div class="search-dropdown" id="search-dropdown" role="listbox" aria-label="Search results" aria-live="polite"></div>
+    <input type="search" id="search-input" class="search-input"
+      placeholder="Search calculators… e.g. SIP, EMI, tax"
+      autocomplete="off"
+      oninput="debouncedSearch(this.value)"
+      aria-label="Search calculators">
+    <button class="search-clear" id="search-clear"
+      onclick="clearSearch()" title="Clear">✕</button>
   </div>
   <div class="hero-btns">
     <a class="btn-primary" href="#calculators">Start Calculating</a>
@@ -879,55 +923,38 @@
   }
 
   /* ── Fuzzy search helpers ── */
-  function damerauLevenshtein(a, b) {
-    var m = a.length, n = b.length;
-    var w = n + 1;
-    /* Use a flat Int32Array instead of an array-of-arrays: contiguous memory
-       gives better CPU-cache locality and avoids per-row array allocation. */
-    var dp = new Int32Array((m + 1) * w);
-    for (var i = 0; i <= m; i++) dp[i * w] = i;
-    for (var j = 0; j <= n; j++) dp[j] = j;
-    for (var i = 1; i <= m; i++) {
-      for (var j = 1; j <= n; j++) {
-        var cost = a[i-1] === b[j-1] ? 0 : 1;
-        dp[i*w+j] = Math.min(dp[(i-1)*w+j] + 1, dp[i*w+(j-1)] + 1, dp[(i-1)*w+(j-1)] + cost);
-        if (i > 1 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1])
-          dp[i*w+j] = Math.min(dp[i*w+j], dp[(i-2)*w+(j-2)] + cost);
-      }
-    }
-    return dp[m*w+n];
+  /* ── SEARCH ── */
+
+  function _esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function fuzzyMatch(query, text) {
-    query = query.toLowerCase().trim();
-    text  = text.toLowerCase();
-    if (!query) return true;
-    if (text.includes(query)) return true;
-    var qWords = query.split(/\s+/).filter(function(w) { return w.length > 0; });
-    var tWords = text.split(/\s+/);
-    return qWords.every(function(qw) {
-      if (text.includes(qw)) return true;
-      var maxDist = qw.length <= 3 ? 0 : qw.length <= 5 ? 1 : 2;
-      return tWords.some(function(tw) { return damerauLevenshtein(qw, tw) <= maxDist; });
-    });
+  function highlight(text, query) {
+    var escaped = _esc(text);
+    try {
+      var q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return escaped.replace(new RegExp('(' + q + ')', 'gi'), '<mark class="sd-hl">$1</mark>');
+    } catch(e) { return escaped; }
   }
 
-  /* ── Search ── */
+  var _catLabel = { investing:'Investing', savings:'Savings', loans:'Loans', tax:'Tax', planning:'Planning' };
+  var _cardData  = null;
+  var _focusIdx  = -1;
 
-  var _cardData = null;
   function _buildCardData() {
     if (_cardData) return _cardData;
     _cardData = [];
     document.querySelectorAll('#calc-grid .card').forEach(function(card) {
       _cardData.push({
-        el: card,
-        icon: (card.querySelector('.card-icon') || {textContent: ''}).textContent,
-        name: (card.querySelector('.card-name') || {textContent: ''}).textContent,
+        icon: (card.querySelector('.card-icon') || {textContent:''}).textContent.trim(),
+        name: (card.querySelector('.card-name') || {textContent:''}).textContent.trim(),
+        desc: (card.querySelector('.card-desc') || {textContent:''}).textContent.trim(),
         href: card.getAttribute('href') || '#',
+        cat:  card.getAttribute('data-cat') || '',
         text: [
-          (card.querySelector('.card-name')  || {textContent: ''}).textContent,
-          (card.querySelector('.card-desc')  || {textContent: ''}).textContent,
-          (card.querySelector('.card-hint')  || {textContent: ''}).textContent,
+          (card.querySelector('.card-name') || {textContent:''}).textContent,
+          (card.querySelector('.card-desc') || {textContent:''}).textContent,
+          (card.querySelector('.card-hint') || {textContent:''}).textContent,
           card.getAttribute('data-keywords') || ''
         ].join(' ')
       });
@@ -935,64 +962,181 @@
     return _cardData;
   }
 
+  /* Position dropdown under the input using fixed coords */
+  function _positionDropdown() {
+    var dd    = document.getElementById('search-dropdown');
+    var input = document.getElementById('search-input');
+    if (!dd || !input) return;
+    var rect  = input.getBoundingClientRect();
+    var left  = Math.min(rect.left, window.innerWidth - rect.width - 8);
+    dd.style.top   = (rect.bottom + 8) + 'px';
+    dd.style.left  = Math.max(8, left)  + 'px';
+    dd.style.width = rect.width + 'px';
+  }
+
+  function _closeDropdown() {
+    var dd = document.getElementById('search-dropdown');
+    if (dd) dd.style.display = 'none';
+    _focusIdx = -1;
+  }
+
+  function _openDropdown(html) {
+    var dd = document.getElementById('search-dropdown');
+    if (!dd) return;
+    dd.innerHTML = html;
+    dd.style.display = 'block';
+    _positionDropdown();
+    dd.style.animation = 'none';
+    dd.offsetHeight; /* force reflow to re-trigger animation */
+    dd.style.animation = 'dropdownIn 0.18s cubic-bezier(0.16,1,0.3,1) both';
+    _focusIdx = -1;
+  }
+
+  function _setFocus(idx) {
+    var items = document.querySelectorAll('#search-dropdown .search-dropdown-item');
+    items.forEach(function(el, i) { el.classList.toggle('sd-focused', i === idx); });
+    if (idx >= 0 && items[idx]) items[idx].scrollIntoView({ block: 'nearest' });
+    _focusIdx = idx;
+  }
+
+  /* Fuzzy scoring */
+  function _score(query, item) {
+    query = query.toLowerCase().trim();
+    var name = item.name.toLowerCase();
+    var text = item.text.toLowerCase();
+    if (!query) return 0;
+    if (name === query)          return 100;
+    if (name.startsWith(query))  return 90;
+    if (name.includes(query))    return 80;
+    if (text.includes(query))    return 70;
+    /* word-level fuzzy */
+    var qw = query.split(/\s+/);
+    var tw = text.split(/\s+/);
+    var allMatch = qw.every(function(q) {
+      if (text.includes(q)) return true;
+      var maxD = q.length <= 3 ? 0 : q.length <= 5 ? 1 : 2;
+      return tw.some(function(t) {
+        /* simple levenshtein */
+        var m=q.length, n=t.length, dp=[];
+        for(var i=0;i<=m;i++){dp[i]=[i];} for(var j=0;j<=n;j++){dp[0][j]=j;}
+        for(var i=1;i<=m;i++) for(var j=1;j<=n;j++)
+          dp[i][j]=q[i-1]===t[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+        return dp[m][n] <= maxD;
+      });
+    });
+    return allMatch ? 50 : 0;
+  }
+
   function onSearch(query) {
     var clearBtn = document.getElementById('search-clear');
     if (clearBtn) clearBtn.style.display = query ? '' : 'none';
+    if (!query.trim()) { _closeDropdown(); return; }
 
-    var dropdown = document.getElementById('search-dropdown');
-
-    if (!query) {
-      if (dropdown) dropdown.style.display = 'none';
-      return;
-    }
-
-    var data = _buildCardData();
-    var matches = [];
-    data.forEach(function(item) {
-      if (fuzzyMatch(query, item.text)) matches.push(item);
+    var scored = [];
+    _buildCardData().forEach(function(item) {
+      var s = _score(query, item);
+      if (s > 0) scored.push({ item: item, score: s });
     });
+    scored.sort(function(a, b) { return b.score - a.score; });
 
-    if (dropdown) {
-      if (matches.length > 0) {
-        dropdown.innerHTML = matches.map(function(item) {
-          var safeHref = item.href.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          var safeIcon = item.icon.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return '<a class="search-dropdown-item" role="option" href="' + safeHref + '">' +
-                 '<span class="sd-icon">' + safeIcon + '</span>' +
-                 '<span class="sd-name">' + item.name.replace(/</g, '&lt;') + '</span>' +
-                 '</a>';
-        }).join('');
-      } else {
-        dropdown.innerHTML = '<div class="search-dropdown-empty">No calculators found for <strong>&ldquo;' + query.replace(/</g,'&lt;') + '&rdquo;</strong></div>';
-      }
-      dropdown.style.display = '';
+    if (scored.length > 0) {
+      var header = '<div class="sd-header"><span>Results</span><span class="sd-count">' + scored.length + ' found</span></div>';
+      var rows = scored.map(function(r) {
+        var it = r.item;
+        var cat = it.cat.split(' ')[0];
+        var badge = _catLabel[cat] ? '<span class="sd-badge">' + _catLabel[cat] + '</span>' : '';
+        return '<a class="search-dropdown-item" href="' + _esc(it.href) + '" tabindex="-1">' +
+          '<span class="sd-icon">' + _esc(it.icon) + '</span>' +
+          '<span class="sd-info">' +
+            '<span class="sd-name">' + highlight(it.name, query) + '</span>' +
+            '<span class="sd-desc">' + _esc(it.desc) + '</span>' +
+          '</span>' +
+          badge +
+          '<span class="sd-arrow">›</span>' +
+          '</a>';
+      }).join('');
+      _openDropdown(header + rows);
+    } else {
+      var chips = ['SIP','EMI','Tax','FD','PPF','GST'].map(function(s) {
+        return '<span class="sd-suggestion-chip" data-chip="' + _esc(s) + '">' + _esc(s) + '</span>';
+      }).join('');
+      _openDropdown('<div class="search-dropdown-empty"><strong>No results for &ldquo;' + _esc(query) + '&rdquo;</strong>Try one of these:<div class="sd-suggestions">' + chips + '</div></div>');
     }
   }
 
-  /* Debounce: wait 150 ms after the last keystroke before running the search,
-     avoiding expensive fuzzy-match work on every intermediate character.
-     The clear-button visibility is updated immediately so users see instant
-     feedback that their input was registered. */
+  /* Debounce */
   var _searchTimer = null;
   function debouncedSearch(query) {
-    var clearBtn = document.getElementById('search-clear');
-    if (clearBtn) clearBtn.style.display = query ? '' : 'none';
+    var cb = document.getElementById('search-clear');
+    if (cb) cb.style.display = query ? '' : 'none';
     clearTimeout(_searchTimer);
-    _searchTimer = setTimeout(function() { onSearch(query); }, 150);
+    _searchTimer = setTimeout(function() { onSearch(query); }, 120);
   }
 
   function clearSearch() {
     var input = document.getElementById('search-input');
     if (input) { input.value = ''; input.focus(); }
-    var dropdown = document.getElementById('search-dropdown');
-    if (dropdown) dropdown.style.display = 'none';
-    onSearch('');
+    _closeDropdown();
   }
+
+  /* Keyboard nav */
+  document.addEventListener('keydown', function(e) {
+    var dd = document.getElementById('search-dropdown');
+    if (!dd || dd.style.display === 'none') return;
+    var items = dd.querySelectorAll('.search-dropdown-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); _setFocus(Math.min(_focusIdx + 1, items.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); _focusIdx <= 0 ? _setFocus(-1) : _setFocus(_focusIdx - 1); }
+    else if (e.key === 'Enter' && _focusIdx >= 0) { e.preventDefault(); items[_focusIdx].click(); }
+    else if (e.key === 'Escape') { _closeDropdown(); }
+  });
+
+  /* Re-open if user clicks input with existing query */
+  document.addEventListener('DOMContentLoaded', function() {
+    var input = document.getElementById('search-input');
+    if (input) input.addEventListener('focus', function() {
+      if (input.value.trim()) onSearch(input.value);
+    });
+  });
+
+  /* Reposition on scroll / resize / mobile keyboard */
+  ['scroll','resize'].forEach(function(ev) {
+    window.addEventListener(ev, function() {
+      var dd = document.getElementById('search-dropdown');
+      if (dd && dd.style.display !== 'none') _positionDropdown();
+    }, { passive: true });
+  });
+  if (window.visualViewport) {
+    ['resize','scroll'].forEach(function(ev) {
+      window.visualViewport.addEventListener(ev, function() {
+        var dd = document.getElementById('search-dropdown');
+        if (dd && dd.style.display !== 'none') _positionDropdown();
+      }, { passive: true });
+    });
+  }
+
+  /* Suggestion chip clicks via event delegation */
+  document.addEventListener('click', function(e) {
+    var chip = e.target.closest ? e.target.closest('.sd-suggestion-chip') : null;
+    if (chip) {
+      var val = chip.getAttribute('data-chip') || '';
+      var input = document.getElementById('search-input');
+      if (input) { input.value = val; input.focus(); }
+      onSearch(val);
+    }
+  });
+
+  /* Close on outside click */
+  document.addEventListener('click', function(e) {
+    var wrap = document.querySelector('.search-wrap');
+    var dd   = document.getElementById('search-dropdown');
+    if (!(wrap && wrap.contains(e.target)) && !(dd && dd.contains(e.target))) _closeDropdown();
+  });
 
   /* ── Category filter ── */
   function filterCat(cat, btn) {
     var input = document.getElementById('search-input');
-    if (input && input.value) { input.value = ''; onSearch(''); }
+    if (input && input.value) { input.value = ''; _closeDropdown(); }
     document.querySelectorAll('.cat-tab').forEach(function(t) { t.classList.remove('active'); });
     btn.classList.add('active');
     document.querySelectorAll('#calc-grid .card').forEach(function(card) {
@@ -1006,17 +1150,11 @@
     var btn = document.getElementById('back-top');
     if (btn) btn.classList.toggle('visible', window.scrollY > 300);
   });
-
-  /* ── Close search dropdown when clicking outside ── */
-  var _searchWrap = document.querySelector('.search-wrap');
-  var _searchDropdown = document.getElementById('search-dropdown');
-  document.addEventListener('click', function(e) {
-    if (_searchDropdown && _searchWrap && !_searchWrap.contains(e.target)) {
-      _searchDropdown.style.display = 'none';
-    }
-  });
 </script>
 
 <button class="back-top" id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">↑</button>
+
+<!-- dropdown lives at body level to escape all stacking contexts -->
+<div class="search-dropdown" id="search-dropdown" role="listbox"></div>
 </body>
 </html>
