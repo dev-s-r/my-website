@@ -143,11 +143,11 @@ nav {
   text-decoration: none; flex-shrink:0;
   display:flex; align-items:center; gap:6px;
 }
-.logo-icon-svg {
-  width: 34px; height: 34px; flex-shrink: 0;
+.logo-icon {
+  width: 34px; height: 34px; flex-shrink: 0; object-fit: contain; display: block;
   transition: transform 0.2s;
 }
-.logo:hover .logo-icon-svg { transform: scale(1.06); }
+.logo:hover .logo-icon { transform: scale(1.06); }
 .logo-text {
   font-family: 'Manrope', sans-serif;
   font-size: 17px; font-weight: 700;
@@ -679,16 +679,7 @@ footer a:hover { color:var(--accent); }
 <!-- ═══════════ NAV ═══════════ -->
 <nav>
   <a class="logo" href="https://devsr.me">
-    <svg class="logo-icon-svg" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="logo-g" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stop-color="#6366F1"/>
-          <stop offset="100%" stop-color="#8B5CF6"/>
-        </linearGradient>
-      </defs>
-      <rect width="34" height="34" rx="8" fill="url(#logo-g)"/>
-      <text x="17" y="24" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="white">C</text>
-    </svg>
+    <img class="logo-icon" src="../logo.png" alt="CalcByDev" width="34" height="34">
     <span class="logo-text">Calc<span class="accent">ByDev</span></span>
   </a>
 
