@@ -697,7 +697,7 @@ footer a:hover { color:var(--accent); }
   </div>
 
   <div class="nav-right">
-    <div class="nav-left" style="display:flex;align-items:center;gap:4px;">
+    <div class="nav-left">
       <a class="nav-link" href="https://devsr.me#calculators" style="font-size:12px;">Calculators</a>
       <a class="nav-link" href="https://devsr.me/about" style="font-size:12px;">About</a>
     </div>
@@ -900,9 +900,11 @@ footer a:hover { color:var(--accent); }
       </div>
     </div>
   </div>
-</div>
 
-<!-- ══ SEC 4: MUONS ══ -->
+  <div style="margin-top:28px;">
+    <button class="quiz-next show" onclick="goSec(4)">Next: Muons →</button>
+  </div>
+</div>
 <div class="section hidden" id="sec4">
   <div class="sec-tag">Section 05 — The Cleanest Proof</div>
   <h2>Muons: <span>Time Itself Slows</span></h2>
@@ -1059,9 +1061,11 @@ footer a:hover { color:var(--accent); }
       <strong>c</strong> → γ = ∞
     </p>
   </div>
-</div>
 
-<!-- ══ SEC 7: SPEED LIMIT ══ -->
+  <div style="margin-top:28px;">
+    <button class="quiz-next show" onclick="goSec(7)">Next: Speed Limit →</button>
+  </div>
+</div>
 <div class="section hidden" id="sec7">
   <div class="sec-tag">Section 08 — The Final Answer</div>
   <h2>Why <span>c Is the Absolute Limit</span></h2>
@@ -1332,8 +1336,8 @@ function quiz(si, chosen, correct){
   var fb = document.getElementById('qf'+si);
   var nxt = document.getElementById('qn'+si);
   opts.forEach(function(o){ o.classList.add('disabled'); });
-  var chosenEl = [...opts].find(function(o){ return o.getAttribute('onclick').includes("'"+chosen+"'"); });
-  var correctEl = [...opts].find(function(o){ return o.getAttribute('onclick').includes("'"+correct+"'"); });
+  var chosenEl = [...opts].find(function(o){ var m=o.getAttribute('onclick').match(/quiz\(\d+,'([^']+)'/); return m && m[1]===chosen; });
+  var correctEl = [...opts].find(function(o){ var m=o.getAttribute('onclick').match(/quiz\(\d+,'([^']+)'/); return m && m[1]===correct; });
   if(chosen===correct){
     chosenEl.classList.add('correct');
     fb.textContent = "✓ " + qOkText[si]; fb.className='quiz-feedback show ok';
