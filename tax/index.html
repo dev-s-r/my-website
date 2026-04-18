@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Income Tax Calculator FY 2025-26 — CalcByDev</title>
+<meta name="description" content="Calculate your income tax for FY 2025-26. Compare Old vs New Tax Regime to find out which saves you more. Free, no signup.">
+<meta property="og:title" content="Income Tax Calculator FY 2025-26 — CalcByDev">
+<meta property="og:description" content="Free income tax calculator. Compare Old vs New Tax Regime instantly. No ads, no signup.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta property="og:image" content="https://devsr.me/og-image.png">
+<meta property="og:url" content="https://devsr.me/tax">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #080C14;
+    --surface: rgba(15,23,42,0.75);
+    --border: rgba(99,116,148,0.22);
+    --text: #F1F5F9;
+    --muted: #94A3B8;
+    --accent: #6366F1;
+    --accent-dim: rgba(99,102,241,0.12);
+    --error: #ef4444;
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.08);
+    --nav-bg: rgba(11,18,33,0.95);
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  .page-title, .result-value, .stat-num { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  nav {
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--nav-bg);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  .logo { text-decoration: none; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+  .logo-icon { width: 44px; height: 44px; object-fit: contain; display: block; transition: transform 0.2s ease; }
+  .logo:hover .logo-icon { transform: scale(1.05); }
+  .logo-text { font-size: 18px; font-weight: 600; color: var(--text); }
+  .accent { color: #8B5CF6; }
+  @media (max-width: 600px) { .logo-text { font-size: 16px; } }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--accent); }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    nav, .page { padding-left: 20px; padding-right: 20px; }
+  }
+
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+
+  .input-row { display: flex; align-items: center; gap: 10px; }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .num-input {
+    width: 88px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+    text-align: right;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+
+  /* Regime toggle */
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-btn {
+    flex: 1;
+    padding: 8px 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .toggle-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* Deductions section (old regime) */
+  .deductions { display: flex; flex-direction: column; gap: 12px; }
+  .deductions-title { font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 480px) { .results { grid-template-columns: 1fr; } }
+
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .result-card.highlight { border-color: var(--accent); background: var(--accent-dim); }
+  .result-card.highlight-green { border-color: var(--green); background: var(--green-dim); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-card.highlight .result-value { color: var(--accent); }
+  .result-card.highlight-green .result-value { color: var(--green); }
+
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+
+  /* Comparison box */
+  .compare-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .compare-title { font-size: 12px; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+  .compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .compare-col { padding: 14px; border-radius: 6px; border: 1px solid var(--border); }
+  .compare-col.winner { border-color: var(--green); background: var(--green-dim); }
+  .compare-col-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .compare-col.winner .compare-col-label { color: var(--green); }
+  .compare-col-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .compare-col-tax { font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .compare-col.winner .compare-col-tax { color: var(--green); }
+  .compare-col-rate { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .saving-badge { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 10px; text-align: center; }
+
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* Slab table */
+  .slab-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .slab-title { font-size: 11px; color: var(--muted); margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .slab-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .slab-table th { color: var(--muted); text-align: left; padding: 6px 0; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .slab-table td { padding: 7px 0; border-bottom: 1px solid rgba(39,39,39,0.5); color: var(--text); }
+  .slab-table tr:last-child td { border-bottom: none; }
+  .slab-table .slab-tax { color: var(--accent); font-weight: 600; }
+
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 16px; }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } }
+
+  /* Light theme */
+  [data-theme="light"] {
+    --bg: #F0F4FF;
+    --surface: #FFFFFF;
+    --border: rgba(99,102,241,0.12);
+    --text: #0F172A;
+    --muted: #64748B;
+    --accent: #6366F1;
+    --accent-dim: rgba(99,102,241,0.12);
+    --nav-bg: rgba(248,250,252,0.95);
+  }
+  html { scroll-behavior: smooth; }
+  /* Theme toggle */
+  .theme-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 15px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* Back to top */
+  .back-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 999;
+    line-height: 1;
+  }
+  .back-top.visible { opacity: 1; transform: translateY(0); }
+  .number { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="../">
+    <img class="logo-icon" src="../logo.png" alt="CalcByDev" width="34" height="34">
+    <span class="logo-text">Calc<span class="accent">ByDev</span></span>
+  </a>
+  <a class="nav-link" href="../compare/">Compare</a>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="../">Home</a> → Tax → Income Tax Calculator</div>
+    <div class="page-title">Income Tax Calculator</div>
+    <div class="page-desc">FY 2025-26 · Compare Old vs New Tax Regime and see your exact tax liability</div>
+  </div>
+
+  <div class="grid">
+    <div class="inputs">
+
+      <!-- Gross Annual Income -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Gross Annual Income (₹)</span>
+          <span class="field-hint">up to 10 Cr</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="inc-r" min="0" max="10000000" step="50000" value="1200000" oninput="onSlider('inc')">
+          <input type="number" class="num-input" id="inc-n" value="1200000" oninput="onNumber('inc')">
+        </div>
+        <div class="err-msg" id="inc-err"></div>
+      </div>
+
+      <!-- Regime Toggle -->
+      <div class="field">
+        <div class="field-label" style="margin-bottom:6px">Tax Regime</div>
+        <div class="toggle-row">
+          <button class="toggle-btn active" id="btn-new" onclick="setRegime('new')">New Regime</button>
+          <button class="toggle-btn" id="btn-old" onclick="setRegime('old')">Old Regime</button>
+        </div>
+      </div>
+
+      <!-- Old Regime Deductions (shown only for old) -->
+      <div id="old-deductions" style="display:none" class="deductions">
+        <div class="deductions-title">Deductions (Old Regime)</div>
+        <!-- 80C -->
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">80C Investments (₹)</span>
+            <span class="field-hint">max 1,50,000</span>
+          </div>
+          <div class="input-row">
+            <input type="range" id="c80-r" min="0" max="150000" step="5000" value="150000" oninput="onSlider('c80')">
+            <input type="number" class="num-input" id="c80-n" value="150000" oninput="onNumber('c80')">
+          </div>
+          <div class="err-msg" id="c80-err"></div>
+        </div>
+        <!-- 80D -->
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">80D Health Insurance (₹)</span>
+            <span class="field-hint">max 25,000</span>
+          </div>
+          <div class="input-row">
+            <input type="range" id="d80-r" min="0" max="25000" step="1000" value="25000" oninput="onSlider('d80')">
+            <input type="number" class="num-input" id="d80-n" value="25000" oninput="onNumber('d80')">
+          </div>
+          <div class="err-msg" id="d80-err"></div>
+        </div>
+        <!-- HRA/Other -->
+        <div class="field">
+          <div class="field-top">
+            <span class="field-label">HRA & Other Exemptions (₹)</span>
+            <span class="field-hint">optional</span>
+          </div>
+          <div class="input-row">
+            <input type="range" id="hra-r" min="0" max="600000" step="5000" value="0" oninput="onSlider('hra')">
+            <input type="number" class="num-input" id="hra-n" value="0" oninput="onNumber('hra')">
+          </div>
+          <div class="err-msg" id="hra-err"></div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">FY 2025-26 Notes</div>
+        <div class="info-text">New regime: Standard deduction ₹75,000. No tax up to ₹12L income (rebate u/s 87A). Old regime: Standard deduction ₹50,000. Rebate up to ₹5L. Add 4% cess on tax. Surcharge applies above ₹50L.</div>
+      </div>
+
+    </div>
+
+    <div class="right-panel">
+      <div class="results">
+        <div class="result-card highlight">
+          <div class="result-label">Tax Payable</div>
+          <div class="result-value number" id="r-tax">—</div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Effective Rate</div>
+          <div class="result-value number" id="r-eff">—</div>
+        </div>
+        <div class="result-card highlight-green">
+          <div class="result-label">Take-Home</div>
+          <div class="result-value number" id="r-home">—</div>
+        </div>
+      </div>
+
+      <!-- Old vs New Comparison -->
+      <div class="compare-box">
+        <div class="compare-title">Old vs New Regime Comparison</div>
+        <div class="compare-row">
+          <div class="compare-col" id="col-new">
+            <div class="compare-col-label">New Regime</div>
+            <div class="compare-col-name">FY 2025-26</div>
+            <div class="compare-col-tax" id="cmp-new-tax">—</div>
+            <div class="compare-col-rate" id="cmp-new-rate">—</div>
+          </div>
+          <div class="compare-col" id="col-old">
+            <div class="compare-col-label">Old Regime</div>
+            <div class="compare-col-name">With Deductions</div>
+            <div class="compare-col-tax" id="cmp-old-tax">—</div>
+            <div class="compare-col-rate" id="cmp-old-rate">—</div>
+          </div>
+        </div>
+        <div class="saving-badge" id="saving-badge"></div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-label">Income Breakdown (₹)</div>
+        <canvas id="chart" height="200"></canvas>
+      </div>
+
+      <!-- Tax Slab Breakdown -->
+      <div class="slab-box">
+        <div class="slab-title" id="slab-title">Tax Slab Breakdown — New Regime</div>
+        <table class="slab-table" id="slab-table">
+          <thead><tr><th>Income Range</th><th>Rate</th><th class="slab-tax">Tax</th></tr></thead>
+          <tbody id="slab-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>© 2026 <span>CalcByDev</span> · devsr.me</div>
+  <div class="footer-links">
+    <a href="../#calculators">Calculators</a>
+    <a href="../compare/">Compare</a>
+    <a href="../about/">About</a>
+  </div>
+  <div>Made with ❤️ in Jaipur</div>
+</footer>
+
+<script>
+  if (typeof Chart !== 'undefined') {
+    var _savedTheme = localStorage.getItem('theme') || 'dark';
+    Chart.defaults.color = _savedTheme === 'light' ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = _savedTheme === 'light' ? '#e0e0e0' : '#1e1e1e';
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    Chart.defaults.font.size = 11;
+
+  function cColor() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? '#e0e0e0' : '#1e1e1e';
+  }
+  function updateChartTheme() {
+    if (typeof Chart === 'undefined') return;
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = isLight ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = isLight ? '#e0e0e0' : '#1e1e1e';
+  }
+
+  }
+
+  let chartInst;
+  let currentRegime = 'new';
+
+  const limits = {
+    inc: { min: 0,   max: 100000000 },
+    c80: { min: 0,   max: 150000 },
+    d80: { min: 0,   max: 25000 },
+    hra: { min: 0,   max: 600000 }
+  };
+
+  function setRegime(r) {
+    currentRegime = r;
+    document.getElementById('btn-new').classList.toggle('active', r === 'new');
+    document.getElementById('btn-old').classList.toggle('active', r === 'old');
+    document.getElementById('old-deductions').style.display = r === 'old' ? 'flex' : 'none';
+    calc();
+  }
+
+  function onSlider(key) {
+    const val = +document.getElementById(key + '-r').value;
+    document.getElementById(key + '-n').value = val;
+    document.getElementById(key + '-n').classList.remove('error');
+    document.getElementById(key + '-err').textContent = '';
+    calc();
+  }
+
+  function onNumber(key) {
+    const input = document.getElementById(key + '-n');
+    const val = +input.value;
+    const { min, max } = limits[key];
+    const errEl = document.getElementById(key + '-err');
+
+    if (input.value === '' || isNaN(val)) { errEl.textContent = ''; return; }
+    if (val < min) { input.classList.add('error'); errEl.textContent = 'Min value is ' + min.toLocaleString('en-IN'); return; }
+    if (val > max) { input.classList.add('error'); errEl.textContent = 'Max value is ' + max.toLocaleString('en-IN'); return; }
+
+    input.classList.remove('error');
+    errEl.textContent = '';
+    document.getElementById(key + '-r').value = Math.min(val, limits[key].max);
+    calc();
+  }
+
+  function getVal(key) {
+    return +document.getElementById(key + '-n').value || 0;
+  }
+
+  function fmt(n) {
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + ' Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(2) + ' L';
+    return '₹' + Math.round(n).toLocaleString('en-IN');
+  }
+
+  // Tax slabs
+  const NEW_SLABS = [
+    { from: 0,        to: 400000,   rate: 0 },
+    { from: 400000,   to: 800000,   rate: 0.05 },
+    { from: 800000,   to: 1200000,  rate: 0.10 },
+    { from: 1200000,  to: 1600000,  rate: 0.15 },
+    { from: 1600000,  to: 2000000,  rate: 0.20 },
+    { from: 2000000,  to: 2400000,  rate: 0.25 },
+    { from: 2400000,  to: Infinity, rate: 0.30 }
+  ];
+
+  const OLD_SLABS = [
+    { from: 0,       to: 250000,   rate: 0 },
+    { from: 250000,  to: 500000,   rate: 0.05 },
+    { from: 500000,  to: 1000000,  rate: 0.20 },
+    { from: 1000000, to: Infinity, rate: 0.30 }
+  ];
+
+  function calcSlabTax(income, slabs) {
+    let tax = 0;
+    const breakdown = [];
+    for (const s of slabs) {
+      if (income <= s.from) break;
+      const taxable = Math.min(income, s.to) - s.from;
+      const t = taxable * s.rate;
+      tax += t;
+      breakdown.push({ from: s.from, to: s.to, rate: s.rate, taxable, tax: t });
+    }
+    return { tax, breakdown };
+  }
+
+  function getSurcharge(income, baseTax) {
+    if (income > 20000000)       return baseTax * 0.25;
+    if (income > 10000000)       return baseTax * 0.15;
+    if (income > 5000000)        return baseTax * 0.10;
+    return 0;
+  }
+
+  function calcNewTax(grossIncome) {
+    const stdDed = 75000;
+    const taxableIncome = Math.max(0, grossIncome - stdDed);
+    const { tax: slabTax, breakdown } = calcSlabTax(taxableIncome, NEW_SLABS);
+    // Rebate u/s 87A: if taxable income <= 12L, no tax
+    const rebate = taxableIncome <= 1200000 ? slabTax : 0;
+    const taxAfterRebate = Math.max(0, slabTax - rebate);
+    const surcharge = getSurcharge(grossIncome, taxAfterRebate);
+    const cess = (taxAfterRebate + surcharge) * 0.04;
+    const total = taxAfterRebate + surcharge + cess;
+    return { total, slabTax, rebate, surcharge, cess, taxableIncome, breakdown };
+  }
+
+  function calcOldTax(grossIncome, ded80C, ded80D, dedHRA) {
+    const stdDed = 50000;
+    const totalDed = stdDed + Math.min(ded80C, 150000) + Math.min(ded80D, 25000) + dedHRA;
+    const taxableIncome = Math.max(0, grossIncome - totalDed);
+    const { tax: slabTax, breakdown } = calcSlabTax(taxableIncome, OLD_SLABS);
+    // Rebate u/s 87A: if taxable income <= 5L, no tax
+    const rebate = taxableIncome <= 500000 ? slabTax : 0;
+    const taxAfterRebate = Math.max(0, slabTax - rebate);
+    const surcharge = getSurcharge(grossIncome, taxAfterRebate);
+    const cess = (taxAfterRebate + surcharge) * 0.04;
+    const total = taxAfterRebate + surcharge + cess;
+    return { total, slabTax, rebate, surcharge, cess, taxableIncome, breakdown };
+  }
+
+  function fmtRate(n) { return n.toFixed(2) + '%'; }
+
+  function calc() {
+    const gross = getVal('inc');
+    if (!gross) {
+      ['r-tax','r-eff','r-home','cmp-new-tax','cmp-old-tax'].forEach(id => document.getElementById(id).textContent = '—');
+      document.getElementById('cmp-new-rate').textContent = '';
+      document.getElementById('cmp-old-rate').textContent = '';
+      document.getElementById('saving-badge').textContent = '';
+      return;
+    }
+
+    const ded80C = getVal('c80');
+    const ded80D = getVal('d80');
+    const dedHRA = getVal('hra');
+
+    const newTax = calcNewTax(gross);
+    const oldTax = calcOldTax(gross, ded80C, ded80D, dedHRA);
+
+    // Active regime results
+    const active = currentRegime === 'new' ? newTax : oldTax;
+    document.getElementById('r-tax').textContent  = fmt(active.total);
+    document.getElementById('r-eff').textContent  = fmtRate(gross > 0 ? active.total / gross * 100 : 0);
+    document.getElementById('r-home').textContent = fmt(gross - active.total);
+
+    // Comparison
+    document.getElementById('cmp-new-tax').textContent  = fmt(newTax.total);
+    document.getElementById('cmp-new-rate').textContent = 'Effective: ' + fmtRate(gross > 0 ? newTax.total / gross * 100 : 0);
+    document.getElementById('cmp-old-tax').textContent  = fmt(oldTax.total);
+    document.getElementById('cmp-old-rate').textContent = 'Effective: ' + fmtRate(gross > 0 ? oldTax.total / gross * 100 : 0);
+
+    const newWins = newTax.total <= oldTax.total;
+    document.getElementById('col-new').className = 'compare-col' + (newWins ? ' winner' : '');
+    document.getElementById('col-old').className = 'compare-col' + (!newWins ? ' winner' : '');
+
+    const saving = Math.abs(newTax.total - oldTax.total);
+    if (saving > 0) {
+      const winner = newWins ? 'New Regime' : 'Old Regime';
+      document.getElementById('saving-badge').textContent = '✓ ' + winner + ' saves you ' + fmt(saving) + ' in tax';
+    } else {
+      document.getElementById('saving-badge').textContent = 'Both regimes result in equal tax';
+    }
+
+    // Slab breakdown
+    const slabs = currentRegime === 'new' ? newTax.breakdown : oldTax.breakdown;
+    document.getElementById('slab-title').textContent = 'Tax Slab Breakdown — ' + (currentRegime === 'new' ? 'New' : 'Old') + ' Regime';
+    const tbody = document.getElementById('slab-body');
+    tbody.innerHTML = '';
+    for (const s of slabs) {
+      if (s.taxable <= 0) continue;
+      const from = s.from === 0 ? '0' : fmt(s.from);
+      const to   = s.to === Infinity ? 'Above' : fmt(s.to);
+      const range = s.to === Infinity ? 'Above ' + fmt(s.from) : from + ' – ' + to;
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + range + '</td><td>' + (s.rate * 100).toFixed(0) + '%</td><td class="slab-tax">' + fmt(s.tax) + '</td>';
+      tbody.appendChild(tr);
+    }
+    if (tbody.children.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="3" style="color:var(--muted)">No tax in any slab (rebate applied)</td>';
+      tbody.appendChild(tr);
+    }
+
+    // Chart
+    const income = gross - active.total;
+    const chartData = [gross - active.total, active.total];
+    const chartLabels = ['Take-Home', 'Tax Payable'];
+    const chartColors = ['#22c55e', '#ef4444'];
+
+    if (typeof Chart !== 'undefined') {
+      if (chartInst) chartInst.destroy();
+      chartInst = new Chart(document.getElementById('chart').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          data: chartData,
+          backgroundColor: chartColors,
+          borderRadius: 4,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 200 },
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + fmt(ctx.parsed.x) } }
+        },
+        scales: {
+          x: {
+            grid: { color: cColor() },
+            ticks: {
+              callback: v => {
+                if (v >= 10000000) return '₹' + (v/10000000).toFixed(1) + 'Cr';
+                if (v >= 100000)   return '₹' + (v/100000).toFixed(1) + 'L';
+                if (v >= 1000)     return '₹' + (v/1000).toFixed(0) + 'k';
+                return '₹' + v;
+              }
+            }
+          },
+          y: { grid: { color: cColor() } }
+        }
+      }
+    });
+    }
+  }
+
+  calc();
+</script>
+
+<script>
+  /* ── Theme toggle ── */
+  (function () {
+    var saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = saved === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', saved === 'light' ? 'true' : 'false'); }
+  })();
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
+    if (typeof updateChartTheme === 'function') { updateChartTheme(); }
+    try { if (typeof calc === 'function') { calc(); } } catch(e) {}
+  }
+
+  /* ── Back to top ── */
+  window.addEventListener('scroll', function () {
+    var btn = document.getElementById('back-top');
+    if (btn) btn.classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+
+<button class="back-top" id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">↑</button>
+</body>
+</html>

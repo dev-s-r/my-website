@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Prepayment Calculator — CalcByDev</title>
+<meta name="description" content="Free Loan Prepayment calculator. Find out how much interest you save and how many months you cut by making extra payments. No ads.">
+<meta property="og:title" content="Loan Prepayment Calculator — CalcByDev">
+<meta property="og:description" content="Extra monthly payment → How much interest saved? How many years cut? Instant results, no signup.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta property="og:image" content="https://devsr.me/og-image.png">
+<meta property="og:url" content="https://devsr.me/prepayment">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #080C14; --surface: rgba(15,23,42,0.75); --border: rgba(99,116,148,0.22); --text: #F1F5F9; --muted: #94A3B8; --accent: #6366F1; --accent-dim: rgba(99,102,241,0.12);
+    --nav-bg: rgba(11,18,33,0.95); --error: #ef4444; --green: #22c55e; --green-dim: rgba(34,197,94,0.08); }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  .page-title, .result-value, .stat-num { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; }
+  nav { padding: 18px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--nav-bg); backdrop-filter: blur(8px); z-index: 100; }
+  .logo { text-decoration: none; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+  .logo-icon { width: 44px; height: 44px; object-fit: contain; display: block; transition: transform 0.2s ease; }
+  .logo:hover .logo-icon { transform: scale(1.05); }
+  .logo-text { font-size: 18px; font-weight: 600; color: var(--text); }
+  .accent { color: #8B5CF6; }
+  @media (max-width: 600px) { .logo-text { font-size: 16px; } }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--accent); }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } nav, .page { padding-left: 20px; padding-right: 20px; } }
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] { -webkit-appearance: none; flex: 1; height: 1px; background: var(--border); outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num-input { width: 88px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 7px 10px; border-radius: 6px; outline: none; font-family: inherit; text-align: right; flex-shrink: 0; transition: border-color 0.15s; }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+  .divider { border: none; border-top: 1px solid var(--border); }
+  .extra-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); font-weight: 600; }
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+  .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 480px) { .results { grid-template-columns: 1fr; } }
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .result-card.highlight { border-color: var(--accent); background: var(--accent-dim); }
+  .result-card.positive { border-color: var(--green); background: var(--green-dim); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .result-card.highlight .result-value { color: var(--accent); }
+  .result-card.positive .result-value { color: var(--green); }
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cmp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .cmp-card.accent-border { border-color: var(--accent); }
+  .cmp-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .cmp-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .cmp-row:last-child { border-bottom: none; }
+  .cmp-key { font-size: 11px; color: var(--muted); }
+  .cmp-val { font-size: 12px; font-weight: 600; }
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 16px; }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } .comparison-grid { grid-template-columns: 1fr; } }
+  [data-theme="light"] { --bg: #F0F4FF; --surface: #FFFFFF; --border: rgba(99,102,241,0.12); --text: #0F172A; --muted: #64748B; --accent: #6366F1; --accent-dim: rgba(99,102,241,0.12); --nav-bg: rgba(248,250,252,0.95); }
+  html { scroll-behavior: smooth; }
+  .theme-btn { background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 15px; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, color 0.15s; flex-shrink: 0; }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .back-top { position: fixed; bottom: 24px; right: 24px; width: 36px; height: 36px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; z-index: 999; line-height: 1; }
+  .back-top.visible { opacity: 1; transform: translateY(0); }
+  .number { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="../">
+    <img class="logo-icon" src="../logo.png" alt="CalcByDev" width="34" height="34">
+    <span class="logo-text">Calc<span class="accent">ByDev</span></span>
+  </a>
+  <a class="nav-link" href="../compare/">Compare</a>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="../">Home</a> → Loans → Loan Prepayment Calculator</div>
+    <div class="page-title">Loan Prepayment Calculator</div>
+    <div class="page-desc">See how much interest you save and how many years you cut by paying extra each month</div>
+  </div>
+  <div class="grid">
+    <div class="inputs">
+      <div class="field">
+        <div class="field-top"><span class="field-label">Loan Amount (₹)</span><span class="field-hint">10,000 – 10 Cr</span></div>
+        <div class="input-row"><input type="range" id="amt-r" min="10000" max="10000000" step="1000" value="3000000" oninput="onSlider('amt')"><input type="number" class="num-input" id="amt-n" value="3000000" oninput="onNumber('amt')"></div>
+        <div class="err-msg" id="amt-err"></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Interest Rate p.a. (%)</span><span class="field-hint">1 – 30</span></div>
+        <div class="input-row"><input type="range" id="rate-r" min="1" max="30" step="0.1" value="8.5" oninput="onSlider('rate')"><input type="number" class="num-input" id="rate-n" value="8.5" oninput="onNumber('rate')"></div>
+        <div class="err-msg" id="rate-err"></div>
+      </div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Loan Tenure (Years)</span><span class="field-hint">1 – 30</span></div>
+        <div class="input-row"><input type="range" id="yr-r" min="1" max="30" step="1" value="20" oninput="onSlider('yr')"><input type="number" class="num-input" id="yr-n" value="20" oninput="onNumber('yr')"></div>
+        <div class="err-msg" id="yr-err"></div>
+      </div>
+      <hr class="divider">
+      <div class="extra-label">Extra Payment</div>
+      <div class="field">
+        <div class="field-top"><span class="field-label">Extra Monthly Payment (₹)</span><span class="field-hint">0 – 5,00,000</span></div>
+        <div class="input-row"><input type="range" id="extra-r" min="0" max="500000" step="500" value="5000" oninput="onSlider('extra')"><input type="number" class="num-input" id="extra-n" value="5000" oninput="onNumber('extra')"></div>
+        <div class="err-msg" id="extra-err"></div>
+      </div>
+      <div class="info-box">
+        <div class="info-title">Why prepay?</div>
+        <div class="info-text">Even a small extra monthly payment dramatically cuts total interest paid and closes your loan years early. The earlier you start prepaying, the more you save — because interest reduces on a higher outstanding principal.</div>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="results">
+        <div class="result-card highlight">
+          <div class="result-label">Interest Saved</div>
+          <div class="result-value number" id="r-saved">—</div>
+          <div class="result-sub" id="r-saved-sub"></div>
+        </div>
+        <div class="result-card positive">
+          <div class="result-label">Years Saved</div>
+          <div class="result-value number" id="r-yrsaved">—</div>
+          <div class="result-sub" id="r-yrsaved-sub"></div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Monthly EMI</div>
+          <div class="result-value number" id="r-emi">—</div>
+          <div class="result-sub" id="r-emi-sub">base EMI</div>
+        </div>
+      </div>
+      <div class="comparison-grid">
+        <div class="cmp-card">
+          <div class="cmp-title">Without Extra</div>
+          <div class="cmp-row"><span class="cmp-key">Total Paid</span><span class="cmp-val" id="c1-total">—</span></div>
+          <div class="cmp-row"><span class="cmp-key">Total Interest</span><span class="cmp-val" id="c1-interest">—</span></div>
+          <div class="cmp-row"><span class="cmp-key">Payoff In</span><span class="cmp-val" id="c1-tenure">—</span></div>
+        </div>
+        <div class="cmp-card accent-border">
+          <div class="cmp-title" style="color:var(--accent)">With Extra Payment</div>
+          <div class="cmp-row"><span class="cmp-key">Total Paid</span><span class="cmp-val" id="c2-total">—</span></div>
+          <div class="cmp-row"><span class="cmp-key">Total Interest</span><span class="cmp-val" id="c2-interest">—</span></div>
+          <div class="cmp-row"><span class="cmp-key">Payoff In</span><span class="cmp-val" id="c2-tenure">—</span></div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">Outstanding balance over time — Normal vs With Prepayment</div>
+        <canvas id="chart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+  <div>© 2026 <span>CalcByDev</span> · devsr.me</div>
+  <div class="footer-links">
+    <a href="../#calculators">Calculators</a>
+    <a href="../compare/">Compare</a>
+    <a href="../about/">About</a>
+  </div>
+  <div>Made with ❤️ in Jaipur</div>
+</footer>
+<script>
+  if (typeof Chart !== 'undefined') { var _t=localStorage.getItem('theme')||'dark'; Chart.defaults.color=_t==='light'?'#737373':'#5a5a5a'; Chart.defaults.borderColor=_t==='light'?'#e0e0e0':'#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11; }
+
+  function cColor() { return document.documentElement.getAttribute('data-theme') === 'light' ? '#e0e0e0' : '#1e1e1e'; }
+  function updateChartTheme() {
+    if (typeof Chart === 'undefined') return;
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = isLight ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = isLight ? '#e0e0e0' : '#1e1e1e';
+  }
+
+  let chartInst;
+  const limits = { amt: { min: 10000, max: 10000000 }, rate: { min: 1, max: 30 }, yr: { min: 1, max: 30 }, extra: { min: 0, max: 500000 } };
+
+  function onSlider(k) { const v=+document.getElementById(k+'-r').value; document.getElementById(k+'-n').value=v; document.getElementById(k+'-n').classList.remove('error'); document.getElementById(k+'-err').textContent=''; calc(); }
+  function onNumber(k) { const inp=document.getElementById(k+'-n'); const v=+inp.value; const {min,max}=limits[k]; const e=document.getElementById(k+'-err'); if(inp.value===''||isNaN(v)){e.textContent='';return;} if(v<min){inp.classList.add('error');e.textContent='Min value is '+min.toLocaleString('en-IN');return;} if(v>max){inp.classList.add('error');e.textContent='Max value is '+max.toLocaleString('en-IN');return;} inp.classList.remove('error');e.textContent=''; document.getElementById(k+'-r').value=Math.min(v,limits[k].max); calc(); }
+  function getVal(k) { return +document.getElementById(k+'-n').value||0; }
+  function fmt(n) { if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+' Cr'; if(n>=100000)return'₹'+(n/100000).toFixed(2)+' L'; return'₹'+Math.round(n).toLocaleString('en-IN'); }
+  function fmtAxis(n) { if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+'Cr'; if(n>=100000)return'₹'+(n/100000).toFixed(2)+'L'; if(n>=1000)return'₹'+(n/1000).toFixed(0)+'k'; return'₹'+n.toFixed(0); }
+  function fmtMonths(m) { const y=Math.floor(m/12); const mo=m%12; if(mo===0)return y+' yr'+(y!==1?'s':''); return y+' yr '+ mo+' mo'; }
+
+  function amortize(P, r, emi, extraPayment, maxMonths) {
+    let bal = P;
+    let totalInterest = 0;
+    let months = 0;
+    const balances = [P];
+    while (bal > 0.01 && months < maxMonths) {
+      const interest = bal * r;
+      let principal = emi - interest + extraPayment;
+      if (principal > bal) principal = bal;
+      totalInterest += interest;
+      bal -= principal;
+      if (bal < 0) bal = 0;
+      months++;
+      balances.push(parseFloat(bal.toFixed(2)));
+    }
+    return { months, totalInterest, balances };
+  }
+
+  function calc() {
+    const P = getVal('amt'), rate = getVal('rate'), yrs = getVal('yr'), extra = getVal('extra');
+    if (!P || !rate || !yrs) return;
+    const r = rate / 100 / 12;
+    const n = yrs * 12;
+    const emi = P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+
+    const normal = amortize(P, r, emi, 0, n + 1);
+    const prepay = amortize(P, r, emi, extra, n + 1);
+
+    const interestSaved = normal.totalInterest - prepay.totalInterest;
+    const monthsSaved   = normal.months - prepay.months;
+
+    document.getElementById('r-saved').textContent    = fmt(interestSaved);
+    document.getElementById('r-saved-sub').textContent = extra > 0 ? 'by paying ₹'+extra.toLocaleString('en-IN')+' extra/mo' : 'add an extra payment to see savings';
+    document.getElementById('r-yrsaved').textContent  = extra > 0 ? fmtMonths(monthsSaved) : '—';
+    document.getElementById('r-yrsaved-sub').textContent = extra > 0 ? 'earlier payoff' : '';
+    document.getElementById('r-emi').textContent      = fmt(emi);
+
+    document.getElementById('c1-total').textContent    = fmt(emi * normal.months);
+    document.getElementById('c1-interest').textContent = fmt(normal.totalInterest);
+    document.getElementById('c1-tenure').textContent   = fmtMonths(normal.months);
+    document.getElementById('c2-total').textContent    = fmt((emi + extra) * prepay.months);
+    document.getElementById('c2-interest').textContent = fmt(prepay.totalInterest);
+    document.getElementById('c2-tenure').textContent   = fmtMonths(prepay.months);
+
+    // Build chart: balance per year for both scenarios
+    const labels = [], normalBal = [], prepayBal = [];
+    const maxYrs = Math.ceil(normal.months / 12);
+    for (let y = 0; y <= maxYrs; y++) {
+      const mIdx = y * 12;
+      labels.push('Yr ' + y);
+      normalBal.push(mIdx < normal.balances.length ? normal.balances[mIdx] : 0);
+      prepayBal.push(mIdx < prepay.balances.length ? prepay.balances[mIdx] : 0);
+    }
+
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(document.getElementById('chart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Normal', data: normalBal, borderColor: '#5a5a5a', backgroundColor: 'transparent', borderDash: [5,4] },
+          { label: 'With Prepayment', data: prepayBal, borderColor: '#6366F1', backgroundColor: 'rgba(99,102,241,0.06)', fill: true }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 200 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 8, padding: 14, usePointStyle: true } },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { color: cColor() }, ticks: { maxTicksLimit: 10 } },
+          y: { grid: { color: cColor() }, ticks: { callback: v => fmtAxis(v), maxTicksLimit: 6 }, min: 0 }
+        },
+        elements: { point: { radius: 0, hoverRadius: 3 }, line: { tension: 0.3, borderWidth: 2 } }
+      }
+    });
+  }
+
+  calc();
+</script>
+<script>
+  (function () {
+    var saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = saved === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', saved === 'light' ? 'true' : 'false'); }
+  })();
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
+    if (typeof updateChartTheme === 'function') { updateChartTheme(); }
+    try { if (typeof calc === 'function') { calc(); } } catch(e) {}
+  }
+
+  window.addEventListener('scroll', function () {
+    var btn = document.getElementById('back-top');
+    if (btn) btn.classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+<button class="back-top" id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">↑</button>
+</body>
+</html>

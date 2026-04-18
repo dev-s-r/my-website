@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Comparison — CalcByDev</title>
+<meta name="description" content="Free Investment Comparison calculator. Compare SIP vs FD, SIP vs Lumpsum, FD vs RD side-by-side with charts. See which investment wins. No ads.">
+<meta property="og:title" content="Investment Comparison — CalcByDev">
+<meta property="og:description" content="Compare SIP vs FD, SIP vs Lumpsum, and FD vs RD side by side with instant charts. No signup needed.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta property="og:image" content="https://devsr.me/og-image.png">
+<meta property="og:url" content="https://devsr.me/compare">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --bg: #080C14; --surface: rgba(15,23,42,0.75); --border: rgba(99,116,148,0.22); --text: #F1F5F9; --muted: #94A3B8; --accent: #6366F1; --accent-dim: rgba(99,102,241,0.12);
+    --nav-bg: rgba(11,18,33,0.95); --error: #ef4444; --green: #22c55e; --amber: #f59e0b; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  .page-title, .result-value, .stat-num { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; }
+  nav { padding: 18px 40px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--nav-bg); backdrop-filter: blur(8px); z-index: 100; }
+  .logo { text-decoration: none; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+  .logo-icon { width: 44px; height: 44px; object-fit: contain; display: block; transition: transform 0.2s ease; }
+  .logo:hover .logo-icon { transform: scale(1.05); }
+  .logo-text { font-size: 18px; font-weight: 600; color: var(--text); }
+  .accent { color: #8B5CF6; }
+  @media (max-width: 600px) { .logo-text { font-size: 16px; } }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--accent); }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+
+  /* Mode tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .tab { background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; font-family: inherit; }
+  .tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .tab:hover:not(.active) { border-color: var(--border); color: var(--text); }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } nav, .page { padding-left: 20px; padding-right: 20px; } }
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  .section-divider { display: flex; align-items: center; gap: 5px; }
+  .section-divider-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+  .section-divider-label.a { color: var(--accent); }
+  .section-divider-label.b { color: var(--amber); }
+  .section-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+  input[type=range] { -webkit-appearance: none; flex: 1; height: 1px; background: var(--border); outline: none; cursor: pointer; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+  input[type=range].b-range::-webkit-slider-thumb { background: var(--amber); }
+  input[type=range]::-moz-range-thumb { width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; border: none; }
+  input[type=range].b-range::-moz-range-thumb { background: var(--amber); }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .num-input { width: 88px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 13px; padding: 7px 10px; border-radius: 6px; outline: none; font-family: inherit; text-align: right; flex-shrink: 0; transition: border-color 0.15s; }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+  .winner-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .winner-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .winner-side { flex: 1; min-width: 130px; }
+  .winner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
+  .winner-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .winner-val.a { color: var(--accent); }
+  .winner-val.b { color: var(--amber); }
+  .winner-badge { text-align: center; font-size: 11px; padding: 6px 12px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .winner-badge.a { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent); }
+  .winner-badge.b { background: rgba(245,158,11,0.10); color: var(--amber); border: 1px solid var(--amber); }
+  .winner-badge.tie { background: rgba(90,90,90,0.15); color: var(--muted); border: 1px solid var(--border); }
+  .results-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+  .result-card.a-card { border-color: var(--accent); background: var(--accent-dim); }
+  .result-card.b-card { border-color: var(--amber); background: rgba(245,158,11,0.07); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-name { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .result-name.a { color: var(--accent); }
+  .result-name.b { color: var(--amber); }
+  .result-stat { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+  .result-stat-key { font-size: 11px; color: var(--muted); }
+  .result-stat-val { font-size: 12px; font-weight: 600; }
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 16px; }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } .results-row { grid-template-columns: 1fr; } }
+  [data-theme="light"] { --bg: #F0F4FF; --surface: #FFFFFF; --border: rgba(99,102,241,0.12); --text: #0F172A; --muted: #64748B; --accent: #6366F1; --accent-dim: rgba(99,102,241,0.12); --nav-bg: rgba(248,250,252,0.95); }
+  html { scroll-behavior: smooth; }
+  .theme-btn { background: none; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-size: 15px; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, color 0.15s; flex-shrink: 0; }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .back-top { position: fixed; bottom: 24px; right: 24px; width: 36px; height: 36px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; z-index: 999; line-height: 1; }
+  .back-top.visible { opacity: 1; transform: translateY(0); }
+  .number { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="../">
+    <img class="logo-icon" src="../logo.png" alt="CalcByDev" width="34" height="34">
+    <span class="logo-text">Calc<span class="accent">ByDev</span></span>
+  </a>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
+</nav>
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="../">Home</a> → Investment → Investment Comparison</div>
+    <div class="page-title">Investment Comparison</div>
+    <div class="page-desc">Compare investment options side-by-side with charts — see which one wins for your timeline</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" onclick="setMode('prepay-invest', this)">🔥 Prepay vs Invest</button>
+    <button class="tab active" onclick="setMode('sip-fd', this)">SIP vs FD</button>
+    <button class="tab" onclick="setMode('sip-lump', this)">SIP vs Lumpsum</button>
+    <button class="tab" onclick="setMode('sip-inflation', this)">SIP vs Inflation</button>
+    <button class="tab" onclick="setMode('emi-prepay', this)">EMI vs Prepayment</button>
+    <button class="tab" onclick="setMode('old-new-tax', this)">Old vs New Tax</button>
+    <button class="tab" onclick="setMode('rent-buy', this)">Rent vs Buy</button>
+    <button class="tab" onclick="setMode('fd-debt', this)">FD vs Debt Fund</button>
+  </div>
+
+  <div class="grid">
+    <div class="inputs" id="inputs-panel">
+      <!-- Inputs rendered by JS -->
+    </div>
+    <div class="right-panel">
+      <div class="winner-box">
+        <div class="winner-row">
+          <div class="winner-side">
+            <div class="winner-label" id="w-label-a">Option A</div>
+            <div class="winner-val number a" id="w-val-a">—</div>
+          </div>
+          <div class="winner-badge" id="w-badge">—</div>
+          <div class="winner-side" style="text-align:right">
+            <div class="winner-label" id="w-label-b">Option B</div>
+            <div class="winner-val number b" id="w-val-b">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="results-row">
+        <div class="result-card a-card">
+          <div class="result-name a" id="card-a-name">Option A</div>
+          <div class="result-stat"><span class="result-stat-key">Final Value</span><span class="result-stat-val" id="ca-value">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Invested</span><span class="result-stat-val" id="ca-invested">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Returns</span><span class="result-stat-val" id="ca-returns">—</span></div>
+        </div>
+        <div class="result-card b-card">
+          <div class="result-name b" id="card-b-name">Option B</div>
+          <div class="result-stat"><span class="result-stat-key">Final Value</span><span class="result-stat-val" id="cb-value">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Invested</span><span class="result-stat-val" id="cb-invested">—</span></div>
+          <div class="result-stat"><span class="result-stat-key">Returns</span><span class="result-stat-val" id="cb-returns">—</span></div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label" id="chart-label">Growth comparison over time</div>
+        <canvas id="chart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>
+  <div>© 2026 <span>CalcByDev</span> · devsr.me</div>
+  <div class="footer-links">
+    <a href="../#calculators">Calculators</a>
+    <span>Compare</span>
+    <a href="../about/">About</a>
+  </div>
+  <div>Made with ❤️ in Jaipur</div>
+</footer>
+<script>
+  if (typeof Chart !== 'undefined') { var _t=localStorage.getItem('theme')||'dark'; Chart.defaults.color=_t==='light'?'#737373':'#5a5a5a'; Chart.defaults.borderColor=_t==='light'?'#e0e0e0':'#1e1e1e'; Chart.defaults.font.family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"; Chart.defaults.font.size=11; }
+
+  function cColor() { return document.documentElement.getAttribute('data-theme') === 'light' ? '#e0e0e0' : '#1e1e1e'; }
+  function updateChartTheme() {
+    if (typeof Chart === 'undefined') return;
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = isLight ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = isLight ? '#e0e0e0' : '#1e1e1e';
+  }
+
+  let chartInst;
+  let currentMode = 'sip-fd';
+
+  function fmt(n) { if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+' Cr'; if(n>=100000)return'₹'+(n/100000).toFixed(2)+' L'; return'₹'+Math.round(n).toLocaleString('en-IN'); }
+  function fmtAxis(n) { if(n>=10000000)return'₹'+(n/10000000).toFixed(2)+'Cr'; if(n>=100000)return'₹'+(n/100000).toFixed(2)+'L'; if(n>=1000)return'₹'+(n/1000).toFixed(0)+'k'; return'₹'+n.toFixed(0); }
+
+  // ── Field render helpers ──
+  function fieldHTML(key, label, hint, min, max, step, defaultVal, isB) {
+    const rangeClass = isB ? 'b-range' : '';
+    return `<div class="field">
+      <div class="field-top"><span class="field-label">${label}</span><span class="field-hint">${hint}</span></div>
+      <div class="input-row"><input type="range" id="${key}-r" class="${rangeClass}" min="${min}" max="${max}" step="${step}" value="${defaultVal}" oninput="onSlider('${key}')"><input type="number" class="num-input" id="${key}-n" value="${defaultVal}" oninput="onNumber('${key}',${min},${max})"></div>
+      <div class="err-msg" id="${key}-err"></div>
+    </div>`;
+  }
+
+  function dividerHTML(label, cls) {
+    return `<div class="section-divider"><span class="section-divider-label ${cls}">${label}</span><hr></div>`;
+  }
+
+  function infoHTML(title, text) {
+    return `<div class="info-box"><div class="info-title">${title}</div><div class="info-text">${text}</div></div>`;
+  }
+
+  const modeConfig = {
+    'prepay-invest': {
+      nameA: 'Loan Prepayment', nameB: 'SIP Investment',
+      fields: () =>
+        dividerHTML('💸 Loan Details', 'a') +
+        fieldHTML('principal', 'Outstanding Loan (₹)', '1L – 2 Cr', 100000, 20000000, 50000, 3000000, false) +
+        fieldHTML('loan-rate', 'Loan Interest Rate (%)', '5 – 20', 5, 20, 0.1, 8.5, false) +
+        fieldHTML('yr', 'Remaining Tenure (Years)', '1 – 30', 1, 30, 1, 20, false) +
+        dividerHTML('📈 Prepay vs Invest', 'b') +
+        fieldHTML('extra', 'Extra Monthly Amount (₹)', '500 – 1L', 500, 100000, 500, 5000, true) +
+        fieldHTML('invest-rate', 'SIP Return p.a. (%)', '1 – 30', 1, 30, 0.1, 12, true) +
+        infoHTML('How this works', 'You have extra money each month. Option A: prepay your loan (save guaranteed interest). Option B: invest in SIP (earn market returns). The winner depends on your loan rate vs investment return.'),
+      calc: () => {
+        const principal = gv('principal'), loanRate = gv('loan-rate'), yrs = gv('yr'), extra = gv('extra'), investRate = gv('invest-rate');
+        if (!principal || !loanRate || !yrs || !extra || !investRate) return;
+        const monthlyRate = loanRate / 100 / 12;
+        const n = yrs * 12;
+        // Standard EMI
+        const emi = principal * monthlyRate * Math.pow(1 + monthlyRate, n) / (Math.pow(1 + monthlyRate, n) - 1);
+        // Total paid without prepayment
+        const totalStd = emi * n;
+        const interestStd = totalStd - principal;
+
+        // With prepayment: simulate month by month
+        let bal = principal, monthsPrepay = 0, totalPaidPrepay = 0;
+        while (bal > 0 && monthsPrepay < n * 2) {
+          const interest = bal * monthlyRate;
+          const principalPart = emi - interest;
+          const extraPrincipal = Math.min(extra, bal - principalPart);
+          bal -= (principalPart + extraPrincipal);
+          totalPaidPrepay += emi + extra;
+          monthsPrepay++;
+          if (bal <= 0) break;
+        }
+        const actualInterestPrepay = totalPaidPrepay - principal - (extra * monthsPrepay);
+        const interestSavedActual = interestStd - actualInterestPrepay;
+        const yearsSaved = (n - monthsPrepay) / 12;
+
+        // SIP investment of extra amount for the original tenure
+        const i = investRate / 100 / 12;
+        const sipFV = extra * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
+        const sipInv = extra * n;
+        const sipReturns = sipFV - sipInv;
+
+        // Build chart data
+        const labels = [], prepayData = [], sipData = [];
+        let balChart = principal;
+        for (let y = 1; y <= yrs; y++) {
+          const mn = y * 12;
+          // SIP value at year y
+          const sipVal = extra * ((Math.pow(1 + i, mn) - 1) / i) * (1 + i);
+          sipData.push(parseFloat(sipVal.toFixed(2)));
+          // Cumulative interest saved by prepayment at year y (approximate)
+          const interestSavedY = interestStd * (mn / n) * 0.5;
+          prepayData.push(parseFloat((extra * mn + interestSavedY).toFixed(2)));
+          labels.push('Yr ' + y);
+        }
+
+        // Winner: compare interest saved vs SIP returns
+        const prepayBenefit = interestSavedActual;
+        const sipBenefit = sipReturns;
+
+        return {
+          aFV: prepayBenefit + extra * monthsPrepay,
+          bFV: sipFV,
+          aInv: extra * monthsPrepay,
+          bInv: sipInv,
+          labels,
+          aData: prepayData,
+          bData: sipData,
+          chartLabel: 'Cumulative benefit — Prepayment (interest saved) vs SIP (corpus)'
+        };
+      }
+    },
+    'sip-fd': {
+      nameA: 'SIP (Market)', nameB: 'Fixed Deposit',
+      fields: () =>
+        dividerHTML('📈 SIP — Market Investment', 'a') +
+        fieldHTML('amt', 'Monthly Investment (₹)', '500 – 10L', 500, 1000000, 500, 10000, false) +
+        fieldHTML('sip-rate', 'SIP Return p.a. (%)', '1 – 30', 1, 30, 0.1, 12, false) +
+        fieldHTML('yr', 'Time Period (Years)', '1 – 30', 1, 30, 1, 10, false) +
+        dividerHTML('🏦 FD — Fixed Deposit', 'b') +
+        fieldHTML('fd-rate', 'FD Rate p.a. (%)', '1 – 15', 1, 15, 0.1, 7, true) +
+        infoHTML('How this works', 'Same monthly amount invested in SIP (market linked) vs deposited in an FD each month (recurring deposit style). SIP assumes variable market returns; FD uses quarterly compounding.'),
+      calc: () => {
+        const amt = gv('amt'), sipRate = gv('sip-rate'), yrs = gv('yr'), fdRate = gv('fd-rate');
+        if (!amt || !sipRate || !yrs || !fdRate) return;
+        const i = sipRate / 100 / 12, n = yrs * 12;
+        const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
+        // FD: monthly deposit, quarterly compounding => effective monthly rate
+        const fdMonthly = Math.pow(1 + fdRate/100/4, 1/3) - 1;
+        const fdFV = amt * ((Math.pow(1+fdMonthly, n) - 1) / fdMonthly) * (1+fdMonthly);
+        const invested = amt * n;
+        const labels=[], sipD=[], fdD=[];
+        for(let y=1;y<=yrs;y++){const mn=y*12;sipD.push(parseFloat((amt*((Math.pow(1+i,mn)-1)/i)*(1+i)).toFixed(2)));fdD.push(parseFloat((amt*((Math.pow(1+fdMonthly,mn)-1)/fdMonthly)*(1+fdMonthly)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: sipFV, bFV: fdFV, aInv: invested, bInv: invested, labels, aData: sipD, bData: fdD, chartLabel: 'Corpus growth — SIP (market) vs FD (recurring deposits)' };
+      }
+    },
+    'sip-lump': {
+      nameA: 'SIP (Monthly)', nameB: 'Lumpsum',
+      fields: () =>
+        dividerHTML('💹 SIP — Monthly Investment', 'a') +
+        fieldHTML('amt', 'Monthly Investment (₹)', '500 – 10L', 500, 1000000, 500, 10000, false) +
+        fieldHTML('yr', 'Time Period (Years)', '1 – 30', 1, 30, 1, 10, false) +
+        fieldHTML('rate', 'Expected Return p.a. (%)', '1 – 30', 1, 30, 0.1, 12, false) +
+        dividerHTML('💰 Lumpsum — One-Time Investment', 'b') +
+        infoHTML('How this works', 'Invests the total amount (monthly × years × 12) either as a monthly SIP or as a lumpsum at the start — same return rate. Shows how timing of investment affects final wealth.'),
+      calc: () => {
+        const amt = gv('amt'), yrs = gv('yr'), rate = gv('rate');
+        if (!amt || !yrs || !rate) return;
+        const i = rate/100/12, n = yrs*12;
+        const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
+        const lumpInv = amt * n;
+        const lumpFV = lumpInv * Math.pow(1 + rate/100, yrs);
+        const labels=[], sipD=[], lumpD=[];
+        for(let y=1;y<=yrs;y++){const mn=y*12;sipD.push(parseFloat((amt*((Math.pow(1+i,mn)-1)/i)*(1+i)).toFixed(2)));lumpD.push(parseFloat((lumpInv*Math.pow(1+rate/100,y)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: sipFV, bFV: lumpFV, aInv: amt*n, bInv: lumpInv, labels, aData: sipD, bData: lumpD, chartLabel: 'Corpus growth — Monthly SIP vs Lumpsum (same total investment)' };
+      }
+    },
+    'fd-debt': {
+      nameA: 'Fixed Deposit', nameB: 'Debt Mutual Fund',      fields: () =>
+        dividerHTML('🏛️ FD — Fixed Deposit', 'a') +
+        fieldHTML('amt', 'Investment Amount (₹)', '1,000 – 1 Cr', 1000, 10000000, 1000, 100000, false) +
+        fieldHTML('fd-rate', 'FD Rate p.a. (%)', '1 – 15', 1, 15, 0.1, 7, false) +
+        fieldHTML('yr', 'Tenure (Years)', '1 – 10', 1, 10, 1, 5, false) +
+        dividerHTML('📈 Debt Fund — Mutual Fund', 'b') +
+        fieldHTML('debt-rate', 'Debt Fund Return p.a. (%)', '1 – 20', 1, 20, 0.1, 9, true) +
+        infoHTML('How this works', 'FD: fixed interest, quarterly compounding. Debt Fund: market-linked, typically higher than FD post-tax for long tenures. Both use the same invested amount.'),
+      calc: () => {
+        const amt = gv('amt'), fdRate = gv('fd-rate'), yrs = gv('yr'), debtRate = gv('debt-rate');
+        if (!amt || !fdRate || !yrs || !debtRate) return;
+        const fdFV = amt * Math.pow(1 + fdRate/100/4, 4*yrs);
+        const debtFV = amt * Math.pow(1 + debtRate/100, yrs);
+        const labels=[], fdD=[], debtD=[];
+        for(let y=1;y<=yrs;y++){fdD.push(parseFloat((amt*Math.pow(1+fdRate/100/4,4*y)).toFixed(2)));debtD.push(parseFloat((amt*Math.pow(1+debtRate/100,y)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: fdFV, bFV: debtFV, aInv: amt, bInv: amt, labels, aData: fdD, bData: debtD, chartLabel: 'Maturity value — FD vs Debt Mutual Fund' };
+      }
+    },
+    'sip-inflation': {
+      nameA: 'SIP Returns', nameB: 'Inflation Impact',
+      fields: () =>
+        dividerHTML('💹 SIP — Monthly Investment', 'a') +
+        fieldHTML('amt', 'Monthly Investment (₹)', '500 – 10L', 500, 1000000, 500, 10000, false) +
+        fieldHTML('sip-rate', 'SIP Return p.a. (%)', '1 – 30', 1, 30, 0.1, 12, false) +
+        fieldHTML('yr', 'Time Period (Years)', '1 – 30', 1, 30, 1, 10, false) +
+        dividerHTML('📉 Inflation', 'b') +
+        fieldHTML('inf-rate', 'Inflation Rate p.a. (%)', '1 – 15', 1, 15, 0.1, 6, true) +
+        infoHTML('How this works', 'Compares nominal SIP corpus vs. the real (inflation-adjusted) value. Shows how much of your returns are eroded by inflation over time.'),
+      calc: () => {
+        const amt = gv('amt'), sipRate = gv('sip-rate'), yrs = gv('yr'), infRate = gv('inf-rate');
+        if (!amt || !sipRate || !yrs || !infRate) return;
+        const i = sipRate/100/12, n = yrs*12;
+        const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
+        const realFV = sipFV / Math.pow(1 + infRate/100, yrs);
+        const invested = amt * n;
+        const labels=[], sipD=[], realD=[];
+        for(let y=1;y<=yrs;y++){const mn=y*12;const fv=amt*((Math.pow(1+i,mn)-1)/i)*(1+i);sipD.push(parseFloat(fv.toFixed(2)));realD.push(parseFloat((fv/Math.pow(1+infRate/100,y)).toFixed(2)));labels.push('Yr '+y);}
+        return { aFV: sipFV, bFV: realFV, aInv: invested, bInv: invested, labels, aData: sipD, bData: realD, chartLabel: 'Nominal SIP corpus vs. Inflation-adjusted real value' };
+      }
+    },
+    'emi-prepay': {
+      nameA: 'Standard EMI', nameB: 'With Prepayment', lowerIsBetter: true,
+      fields: () =>
+        dividerHTML('🏠 Loan Details', 'a') +
+        fieldHTML('principal', 'Loan Amount (₹)', '1L – 5 Cr', 100000, 50000000, 10000, 3000000, false) +
+        fieldHTML('loan-rate', 'Interest Rate p.a. (%)', '1 – 20', 1, 20, 0.1, 8.5, false) +
+        fieldHTML('yr', 'Loan Tenure (Years)', '1 – 30', 1, 30, 1, 20, false) +
+        dividerHTML('💸 Prepayment', 'b') +
+        fieldHTML('prepay', 'Extra Monthly Payment (₹)', '0 – 1L', 0, 100000, 500, 5000, true) +
+        infoHTML('How this works', 'Standard EMI: pay exactly the calculated EMI each month. With Prepayment: pay EMI + extra amount monthly. Shows interest saved and years reduced.'),
+      calc: () => {
+        const p = gv('principal'), rate = gv('loan-rate'), yrs = gv('yr'), extra = gv('prepay');
+        if (!p || !rate || !yrs) return;
+        const r = rate/100/12, n = yrs*12;
+        const emi = p * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+        const totalA = emi * n;
+        // With prepayment: simulate month by month
+        let bal = p, months = 0, totalPaid = 0;
+        while (bal > 0 && months < n*2) { // n*2 safety cap: prepayment should finish well before 2× tenure
+          const interest = bal * r;
+          const principal = emi + extra - interest;
+          if (principal <= 0) break;
+          bal -= principal;
+          totalPaid += emi + extra;
+          months++;
+          if (bal < 0) { totalPaid += bal; bal = 0; }
+        }
+        const labels=[], stdD=[], prepD=[];
+        let balStd = p, balPre = p;
+        const maxYrs = yrs;
+        for(let y=1;y<=maxYrs;y++){
+          for(let m=0;m<12;m++){if(balStd>0){const i2=balStd*r;balStd-=(emi-i2);}if(balPre>0){const i2=balPre*r;balPre-=((emi+extra)-i2);if(balPre<0)balPre=0;}}
+          labels.push('Yr '+y);
+          stdD.push(parseFloat(Math.max(0,balStd).toFixed(2)));
+          prepD.push(parseFloat(Math.max(0,balPre).toFixed(2)));
+        }
+        return { aFV: totalA, bFV: totalPaid, aInv: p, bInv: p, labels, aData: stdD, bData: prepD, chartLabel: 'Outstanding loan balance — Standard vs With Prepayment' };
+      }
+    },
+    'old-new-tax': {
+      nameA: 'Old Regime', nameB: 'New Regime', lowerIsBetter: true,
+      fields: () =>
+        dividerHTML('🇮🇳 Income & Deductions', 'a') +
+        fieldHTML('income', 'Annual Income (₹)', '3L – 1 Cr', 300000, 10000000, 10000, 1000000, false) +
+        fieldHTML('deductions', '80C + Deductions (₹)', '0 – 2.5L', 0, 250000, 5000, 150000, false) +
+        fieldHTML('hra', 'HRA Exempt (₹)', '0 – 5L', 0, 500000, 5000, 0, false) +
+        infoHTML('How this works', 'Old Regime: allows deductions (80C, HRA, etc.) but has higher slab rates. New Regime (FY 2025-26): lower slab rates but no deductions. Uses standard ₹75K deduction for new regime.'),
+      calc: () => {
+        const income = gv('income'), ded = gv('deductions'), hra = gv('hra');
+        if (!income) return;
+        // Old regime
+        const stdDedOld = 75000;
+        const taxableOld = Math.max(0, income - stdDedOld - ded - hra);
+        const oldTax = calcOldTax(taxableOld);
+        // New regime FY 2025-26
+        const stdDedNew = 75000;
+        const taxableNew = Math.max(0, income - stdDedNew);
+        const newTax = calcNewTax(taxableNew);
+        const yrs = 10;
+        const labels=[], oldD=[], newD=[];
+        for(let y=1;y<=yrs;y++){labels.push('Yr '+y);oldD.push(parseFloat((oldTax*y).toFixed(2)));newD.push(parseFloat((newTax*y).toFixed(2)));}
+        return { aFV: oldTax, bFV: newTax, aInv: income, bInv: income, labels, aData: oldD, bData: newD, chartLabel: 'Cumulative tax paid — Old vs New Regime (10 years)' };
+      }
+    },
+    'rent-buy': {
+      nameA: 'Renting', nameB: 'Buying', lowerIsBetter: true,
+      fields: () =>
+        dividerHTML('🏠 Renting', 'a') +
+        fieldHTML('rent', 'Monthly Rent (₹)', '5,000 – 2L', 5000, 200000, 1000, 25000, false) +
+        fieldHTML('rent-inc', 'Annual Rent Increase (%)', '0 – 15', 0, 15, 0.5, 5, false) +
+        fieldHTML('yr', 'Time Period (Years)', '5 – 30', 5, 30, 1, 15, false) +
+        dividerHTML('🏡 Buying', 'b') +
+        fieldHTML('prop-val', 'Property Value (₹ L)', '20 – 500', 20, 500, 5, 80, true) +
+        fieldHTML('down-pay', 'Down Payment (%)', '10 – 50', 10, 50, 5, 20, true) +
+        fieldHTML('loan-rate', 'Home Loan Rate (%)', '6 – 15', 6, 15, 0.1, 8.5, true) +
+        infoHTML('How this works', 'Compares total cost of renting vs. buying (EMI + down payment) over the same period. Does not account for property appreciation or tax benefits — use as a rough guide.'),
+      calc: () => {
+        const rent = gv('rent'), rentInc = gv('rent-inc'), yrs = gv('yr');
+        const propValL = gv('prop-val'), downPct = gv('down-pay'), loanRate = gv('loan-rate');
+        if (!rent || !yrs || !propValL || !loanRate) return;
+        const propVal = propValL * 100000;
+        const downAmt = propVal * downPct / 100;
+        const loanAmt = propVal - downAmt;
+        const r = loanRate/100/12, n = yrs*12;
+        const emi = loanAmt * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+        // Rent total
+        let totalRent = 0, curRent = rent;
+        const labels=[], rentD=[], buyD=[];
+        let cumRent = 0, cumBuy = downAmt;
+        for(let y=1;y<=yrs;y++){
+          for(let m=0;m<12;m++){cumRent+=curRent;}
+          curRent*=(1+rentInc/100);
+          cumBuy+=emi*12;
+          labels.push('Yr '+y);
+          rentD.push(parseFloat(cumRent.toFixed(2)));
+          buyD.push(parseFloat(cumBuy.toFixed(2)));
+        }
+        return { aFV: cumRent, bFV: cumBuy, aInv: 0, bInv: downAmt, labels, aData: rentD, bData: buyD, chartLabel: 'Cumulative outflow — Renting vs Buying' };
+      }
+    }
+  };
+
+  function gv(k) { const el = document.getElementById(k+'-n'); return el ? +el.value||0 : 0; }
+
+  // Tax helpers for Old vs New regime
+  function calcOldTax(taxable) {
+    // Rebate 87A: zero tax for taxable income <= 500000
+    if (taxable <= 500000) return 0;
+    let tax = 0;
+    if (taxable <= 250000) tax = 0;
+    else if (taxable <= 500000) tax = (taxable - 250000) * 0.05;
+    else if (taxable <= 1000000) tax = 12500 + (taxable - 500000) * 0.20;
+    else tax = 112500 + (taxable - 1000000) * 0.30;
+    return tax * 1.04; // 4% cess
+  }
+  function calcNewTax(taxable) {
+    // Rebate 87A: zero tax for taxable income <= 1200000
+    if (taxable <= 1200000) return 0;
+    let tax = 0;
+    if (taxable <= 400000) tax = 0;
+    else if (taxable <= 800000) tax = (taxable - 400000) * 0.05;
+    else if (taxable <= 1200000) tax = 20000 + (taxable - 800000) * 0.10;
+    else if (taxable <= 1600000) tax = 60000 + (taxable - 1200000) * 0.15;
+    else if (taxable <= 2000000) tax = 120000 + (taxable - 1600000) * 0.20;
+    else if (taxable <= 2400000) tax = 200000 + (taxable - 2000000) * 0.25;
+    else tax = 300000 + (taxable - 2400000) * 0.30;
+    return tax * 1.04; // 4% cess
+  }
+
+  function onSlider(k) {
+    const el = document.getElementById(k+'-r');
+    if (!el) return;
+    document.getElementById(k+'-n').value = +el.value;
+    document.getElementById(k+'-n').classList.remove('error');
+    document.getElementById(k+'-err').textContent = '';
+    calc();
+  }
+
+  function onNumber(k, min, max) {
+    const inp = document.getElementById(k+'-n');
+    if (!inp) return;
+    const v = +inp.value;
+    const e = document.getElementById(k+'-err');
+    if (inp.value === '' || isNaN(v)) { if(e) e.textContent=''; return; }
+    if (v < min) { inp.classList.add('error'); if(e) e.textContent='Min '+min.toLocaleString('en-IN'); return; }
+    if (v > max) { inp.classList.add('error'); if(e) e.textContent='Max '+max.toLocaleString('en-IN'); return; }
+    inp.classList.remove('error');
+    if(e) e.textContent='';
+    const r = document.getElementById(k+'-r');
+    if(r) r.value = Math.min(v, max);
+    calc();
+  }
+
+  function setMode(m, btn) {
+    currentMode = m;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderInputs();
+    calc();
+  }
+
+  function renderInputs() {
+    document.getElementById('inputs-panel').innerHTML = modeConfig[currentMode].fields();
+  }
+
+  function calc() {
+    const cfg = modeConfig[currentMode];
+    let result;
+    try { result = cfg.calc(); } catch(e) { return; }
+    if (!result) return;
+    const { aFV, bFV, aInv, bInv, labels, aData, bData, chartLabel } = result;
+
+    document.getElementById('w-label-a').textContent = cfg.nameA;
+    document.getElementById('w-label-b').textContent = cfg.nameB;
+    document.getElementById('w-val-a').textContent = fmt(aFV);
+    document.getElementById('w-val-b').textContent = fmt(bFV);
+    document.getElementById('card-a-name').textContent = cfg.nameA;
+    document.getElementById('card-b-name').textContent = cfg.nameB;
+    document.getElementById('ca-value').textContent = fmt(aFV);
+    document.getElementById('ca-invested').textContent = fmt(aInv);
+    document.getElementById('ca-returns').textContent = fmt(aFV - aInv);
+    document.getElementById('cb-value').textContent = fmt(bFV);
+    document.getElementById('cb-invested').textContent = fmt(bInv);
+    document.getElementById('cb-returns').textContent = fmt(bFV - bInv);
+    document.getElementById('chart-label').textContent = chartLabel;
+
+    const diff = Math.abs(aFV - bFV) / Math.max(aFV, bFV);
+    const badge = document.getElementById('w-badge');
+    const lowerWins = !!cfg.lowerIsBetter;
+    if (diff < 0.005) {
+      badge.textContent = '≈ Roughly Equal'; badge.className = 'winner-badge tie';
+    } else if (lowerWins ? (aFV < bFV) : (aFV > bFV)) {
+      badge.textContent = cfg.nameA + ' wins 🏆'; badge.className = 'winner-badge a';
+    } else {
+      badge.textContent = cfg.nameB + ' wins 🏆'; badge.className = 'winner-badge b';
+    }
+
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(document.getElementById('chart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: cfg.nameA, data: aData, borderColor: '#6366F1', backgroundColor: 'rgba(99,102,241,0.06)', fill: false },
+          { label: cfg.nameB, data: bData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.06)', fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 200 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 8, padding: 14, usePointStyle: true } },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { color: cColor() }, ticks: { maxTicksLimit: 8 } },
+          y: { grid: { color: cColor() }, ticks: { callback: v => fmtAxis(v), maxTicksLimit: 6 } }
+        },
+        elements: { point: { radius: 0, hoverRadius: 3 }, line: { tension: 0.4, borderWidth: 2 } }
+      }
+    });
+  }
+
+  renderInputs();
+  calc();
+</script>
+<script>
+  (function () {
+    var saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = saved === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', saved === 'light' ? 'true' : 'false'); }
+  })();
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
+    if (typeof updateChartTheme === 'function') { updateChartTheme(); }
+    try { if (typeof calc === 'function') { calc(); } } catch(e) {}
+  }
+
+  window.addEventListener('scroll', function () {
+    var btn = document.getElementById('back-top');
+    if (btn) btn.classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+<button class="back-top" id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">↑</button>
+</body>
+</html>

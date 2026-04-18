@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retirement Calculator — CalcByDev</title>
+<meta name="description" content="Plan your retirement with India's free retirement corpus calculator. Find out how much to save each month to retire comfortably.">
+<meta property="og:title" content="Retirement Calculator — CalcByDev">
+<meta property="og:description" content="Free retirement planning calculator. Calculate the corpus you need and the SIP required to retire comfortably. No ads, no signup.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<meta property="og:image" content="https://devsr.me/og-image.png">
+<meta property="og:url" content="https://devsr.me/retirement">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #080C14;
+    --surface: rgba(15,23,42,0.75);
+    --border: rgba(99,116,148,0.22);
+    --text: #F1F5F9;
+    --muted: #94A3B8;
+    --accent: #6366F1;
+    --accent-dim: rgba(99,102,241,0.12);
+    --error: #ef4444;
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.08);
+    --nav-bg: rgba(11,18,33,0.95);
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; min-height: 100vh; }
+  .page-title, .result-value, .stat-num { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+  nav {
+    padding: 18px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--nav-bg);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+  .logo { text-decoration: none; flex-shrink: 0; display: flex; align-items: center; gap: 5px; }
+  .logo-icon { width: 44px; height: 44px; object-fit: contain; display: block; transition: transform 0.2s ease; }
+  .logo:hover .logo-icon { transform: scale(1.05); }
+  .logo-text { font-size: 18px; font-weight: 600; color: var(--text); }
+  .accent { color: #8B5CF6; }
+  @media (max-width: 600px) { .logo-text { font-size: 16px; } }
+  .back { font-size: 12px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.15s; }
+  .back:hover { color: var(--accent); }
+  .nav-link { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  .nav-link:hover { color: var(--accent); }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 40px; }
+  .page-header { margin-bottom: 32px; }
+  .breadcrumb { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .breadcrumb a { color: var(--muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .page-desc { font-size: 13px; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    nav, .page { padding-left: 20px; padding-right: 20px; }
+  }
+
+  .inputs { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 20px; }
+
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field-top { display: flex; justify-content: space-between; align-items: center; }
+  .field-label { font-size: 12px; color: var(--muted); }
+  .field-hint { font-size: 11px; color: var(--muted); opacity: 0.6; }
+
+  .input-row { display: flex; align-items: center; gap: 10px; }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+  }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .num-input {
+    width: 88px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    outline: none;
+    font-family: inherit;
+    text-align: right;
+    flex-shrink: 0;
+    transition: border-color 0.15s;
+  }
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.error { border-color: var(--error); }
+
+  .err-msg { font-size: 11px; color: var(--error); min-height: 14px; }
+
+  .right-panel { display: flex; flex-direction: column; gap: 14px; }
+
+  .results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  @media (max-width: 480px) { .results { grid-template-columns: 1fr; } }
+
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .result-card.highlight { border-color: var(--accent); background: var(--accent-dim); }
+  .result-card.highlight-green { border-color: var(--green); background: var(--green-dim); }
+  .result-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-sub { font-size: 10px; color: var(--muted); margin-top: 4px; opacity: 0.7; }
+  .result-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-card.highlight .result-value { color: var(--accent); }
+  .result-card.highlight-green .result-value { color: var(--green); }
+
+  .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .chart-label { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+
+  .info-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .info-title { font-size: 11px; font-weight: 600; margin-bottom: 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-text { font-size: 12px; color: var(--muted); line-height: 1.7; }
+
+  /* Key stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  footer { border-top: 1px solid var(--border); padding: 20px 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 60px; }
+  footer span { color: var(--accent); }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 16px; }
+  @media (max-width: 640px) { footer { flex-direction: column; gap: 6px; padding: 20px; } }
+
+  /* Light theme */
+  [data-theme="light"] {
+    --bg: #F0F4FF;
+    --surface: #FFFFFF;
+    --border: rgba(99,102,241,0.12);
+    --text: #0F172A;
+    --muted: #64748B;
+    --accent: #6366F1;
+    --accent-dim: rgba(99,102,241,0.12);
+    --nav-bg: rgba(248,250,252,0.95);
+  }
+  html { scroll-behavior: smooth; }
+  /* Theme toggle */
+  .theme-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 15px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* Back to top */
+  .back-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 999;
+    line-height: 1;
+  }
+  .back-top.visible { opacity: 1; transform: translateY(0); }
+  .number { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="../">
+    <img class="logo-icon" src="../logo.png" alt="CalcByDev" width="34" height="34">
+    <span class="logo-text">Calc<span class="accent">ByDev</span></span>
+  </a>
+  <a class="nav-link" href="../compare/">Compare</a>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode" aria-pressed="false">☀️</button>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="../">Home</a> → Planning → Retirement Calculator</div>
+    <div class="page-title">Retirement Calculator</div>
+    <div class="page-desc">Find out how much corpus you need and the monthly SIP to retire comfortably</div>
+  </div>
+
+  <div class="grid">
+    <div class="inputs">
+
+      <!-- Current Age -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Current Age (Years)</span>
+          <span class="field-hint">18 – 60</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="age-r" min="18" max="60" step="1" value="28" oninput="onSlider('age')">
+          <input type="number" class="num-input" id="age-n" value="28" oninput="onNumber('age')">
+        </div>
+        <div class="err-msg" id="age-err"></div>
+      </div>
+
+      <!-- Retirement Age -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Retirement Age (Years)</span>
+          <span class="field-hint">40 – 75</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="ret-r" min="40" max="75" step="1" value="60" oninput="onSlider('ret')">
+          <input type="number" class="num-input" id="ret-n" value="60" oninput="onNumber('ret')">
+        </div>
+        <div class="err-msg" id="ret-err"></div>
+      </div>
+
+      <!-- Monthly Expenses -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Current Monthly Expenses (₹)</span>
+          <span class="field-hint">5,000 – 5,00,000</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="exp-r" min="5000" max="500000" step="1000" value="50000" oninput="onSlider('exp')">
+          <input type="number" class="num-input" id="exp-n" value="50000" oninput="onNumber('exp')">
+        </div>
+        <div class="err-msg" id="exp-err"></div>
+      </div>
+
+      <!-- Inflation -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Inflation Rate p.a. (%)</span>
+          <span class="field-hint">3 – 12</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="inf-r" min="3" max="12" step="0.5" value="6" oninput="onSlider('inf')">
+          <input type="number" class="num-input" id="inf-n" value="6" oninput="onNumber('inf')">
+        </div>
+        <div class="err-msg" id="inf-err"></div>
+      </div>
+
+      <!-- Pre-retirement Return -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Investment Return p.a. (%)</span>
+          <span class="field-hint">pre-retirement, 6 – 20</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="pre-r" min="6" max="20" step="0.5" value="12" oninput="onSlider('pre')">
+          <input type="number" class="num-input" id="pre-n" value="12" oninput="onNumber('pre')">
+        </div>
+        <div class="err-msg" id="pre-err"></div>
+      </div>
+
+      <!-- Post-retirement Return -->
+      <div class="field">
+        <div class="field-top">
+          <span class="field-label">Post-Retirement Return p.a. (%)</span>
+          <span class="field-hint">4 – 12</span>
+        </div>
+        <div class="input-row">
+          <input type="range" id="post-r" min="4" max="12" step="0.5" value="7" oninput="onSlider('post')">
+          <input type="number" class="num-input" id="post-n" value="7" oninput="onNumber('post')">
+        </div>
+        <div class="err-msg" id="post-err"></div>
+      </div>
+
+      <div class="info-box">
+        <div class="info-title">How it's calculated</div>
+        <div class="info-text">Your expenses are inflated to retirement age. The corpus is the present value of an inflation-adjusted annuity lasting until age 85. The monthly SIP is what you need to invest today to accumulate that corpus.</div>
+      </div>
+
+    </div>
+
+    <div class="right-panel">
+
+      <!-- Key stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="s-years">—</div>
+          <div class="stat-label">Years to Retire</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="s-exp">—</div>
+          <div class="stat-label">Monthly Expense at Retirement</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="s-life">—</div>
+          <div class="stat-label">Retirement Duration</div>
+        </div>
+      </div>
+
+      <div class="results">
+        <div class="result-card highlight">
+          <div class="result-label">Corpus Needed</div>
+          <div class="result-value number" id="r-corpus">—</div>
+          <div class="result-sub">At retirement age</div>
+        </div>
+        <div class="result-card highlight-green">
+          <div class="result-label">Monthly SIP Needed</div>
+          <div class="result-value number" id="r-sip">—</div>
+          <div class="result-sub">Starting now</div>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <div class="chart-label">Corpus accumulation over time</div>
+        <canvas id="chart" height="220"></canvas>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>© 2026 <span>CalcByDev</span> · devsr.me</div>
+  <div class="footer-links">
+    <a href="../#calculators">Calculators</a>
+    <a href="../compare/">Compare</a>
+    <a href="../about/">About</a>
+  </div>
+  <div>Made with ❤️ in Jaipur</div>
+</footer>
+
+<script>
+  if (typeof Chart !== 'undefined') {
+    var _savedTheme = localStorage.getItem('theme') || 'dark';
+    Chart.defaults.color = _savedTheme === 'light' ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = _savedTheme === 'light' ? '#e0e0e0' : '#1e1e1e';
+    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    Chart.defaults.font.size = 11;
+
+  function cColor() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? '#e0e0e0' : '#1e1e1e';
+  }
+  function updateChartTheme() {
+    if (typeof Chart === 'undefined') return;
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = isLight ? '#737373' : '#5a5a5a';
+    Chart.defaults.borderColor = isLight ? '#e0e0e0' : '#1e1e1e';
+  }
+
+  }
+
+  let chartInst;
+
+  const limits = {
+    age:  { min: 18,  max: 60 },
+    ret:  { min: 40,  max: 75 },
+    exp:  { min: 5000, max: 500000 },
+    inf:  { min: 3,   max: 12 },
+    pre:  { min: 6,   max: 20 },
+    post: { min: 4,   max: 12 }
+  };
+
+  function onSlider(key) {
+    const val = +document.getElementById(key + '-r').value;
+    document.getElementById(key + '-n').value = val;
+    document.getElementById(key + '-n').classList.remove('error');
+    document.getElementById(key + '-err').textContent = '';
+    calc();
+  }
+
+  function onNumber(key) {
+    const input = document.getElementById(key + '-n');
+    const val = +input.value;
+    const { min, max } = limits[key];
+    const errEl = document.getElementById(key + '-err');
+
+    if (input.value === '' || isNaN(val)) { errEl.textContent = ''; return; }
+    if (val < min) { input.classList.add('error'); errEl.textContent = 'Min value is ' + min; return; }
+    if (val > max) { input.classList.add('error'); errEl.textContent = 'Max value is ' + max; return; }
+
+    input.classList.remove('error');
+    errEl.textContent = '';
+    document.getElementById(key + '-r').value = val;
+    calc();
+  }
+
+  function getVal(key) { return +document.getElementById(key + '-n').value || 0; }
+
+  function fmt(n) {
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + ' Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(2) + ' L';
+    return '₹' + Math.round(n).toLocaleString('en-IN');
+  }
+
+  function fmtShort(n) {
+    if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1) + 'Cr';
+    if (n >= 100000)   return '₹' + (n / 100000).toFixed(1) + 'L';
+    if (n >= 1000)     return '₹' + (n / 1000).toFixed(0) + 'k';
+    return '₹' + Math.round(n);
+  }
+
+  function calc() {
+    const currentAge    = getVal('age');
+    const retirementAge = getVal('ret');
+    const monthlyExp    = getVal('exp');
+    const inflationRate = getVal('inf') / 100;
+    const preReturn     = getVal('pre') / 100;
+    const postReturn    = getVal('post') / 100;
+
+    if (!currentAge || !retirementAge || !monthlyExp || !inflationRate || !preReturn || !postReturn) return;
+
+    if (retirementAge <= currentAge) {
+      document.getElementById('ret-err').textContent = 'Must be greater than current age';
+      document.getElementById('ret-n').classList.add('error');
+      return;
+    } else {
+      document.getElementById('ret-err').textContent = '';
+      document.getElementById('ret-n').classList.remove('error');
+    }
+
+    const yearsToRetire  = retirementAge - currentAge;
+    const retirementYrs  = Math.max(1, 85 - retirementAge);   // assume lifespan of 85
+    const monthsToRetire = yearsToRetire * 12;
+
+    // Monthly expense at retirement (inflation-adjusted)
+    const futureMonthlyExp = monthlyExp * Math.pow(1 + inflationRate, yearsToRetire);
+
+    // Corpus needed: PV of inflation-adjusted annuity for retirementYrs
+    // Real monthly return during retirement = (1+postReturn)/(1+inflationRate))^(1/12) - 1
+    const annualRealReturn = (1 + postReturn) / (1 + inflationRate) - 1;
+    const monthlyRealReturn = Math.pow(1 + annualRealReturn, 1 / 12) - 1;
+    const retirementMonths = retirementYrs * 12;
+
+    let corpus;
+    if (Math.abs(monthlyRealReturn) < 1e-9) {
+      corpus = futureMonthlyExp * retirementMonths;
+    } else {
+      corpus = futureMonthlyExp * (1 - Math.pow(1 + monthlyRealReturn, -retirementMonths)) / monthlyRealReturn;
+    }
+
+    // Monthly SIP needed to accumulate corpus
+    const monthlyPreReturn = Math.pow(1 + preReturn, 1 / 12) - 1;
+    const sipNeeded = corpus * monthlyPreReturn / (Math.pow(1 + monthlyPreReturn, monthsToRetire) - 1);
+
+    // Display
+    document.getElementById('s-years').textContent = yearsToRetire + ' yrs';
+    document.getElementById('s-exp').textContent   = fmtShort(futureMonthlyExp);
+    document.getElementById('s-life').textContent  = retirementYrs + ' yrs';
+    document.getElementById('r-corpus').textContent = fmt(corpus);
+    document.getElementById('r-sip').textContent    = fmt(sipNeeded);
+
+    // Chart: corpus buildup year by year
+    const labels = [], inv = [], val = [];
+    for (let y = 1; y <= yearsToRetire; y++) {
+      const n = y * 12;
+      const fv = sipNeeded * (Math.pow(1 + monthlyPreReturn, n) - 1) / monthlyPreReturn;
+      labels.push('Age ' + (currentAge + y));
+      inv.push(parseFloat((sipNeeded * n).toFixed(2)));
+      val.push(parseFloat(fv.toFixed(2)));
+    }
+
+    if (typeof Chart !== 'undefined') {
+      if (chartInst) chartInst.destroy();
+      chartInst = new Chart(document.getElementById('chart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Corpus Value',    data: val, borderColor: '#6366F1', backgroundColor: 'rgba(99,102,241,0.06)', fill: true },
+          { label: 'Amount Invested', data: inv, borderColor: '#5a5a5a', backgroundColor: 'transparent', borderDash: [5,4] }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 200 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { boxWidth: 8, padding: 14, usePointStyle: true } },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { color: cColor() }, ticks: { maxTicksLimit: 8 } },
+          y: {
+            grid: { color: cColor() },
+            ticks: {
+              callback: v => {
+                if (v >= 10000000) return '₹' + (v/10000000).toFixed(1) + 'Cr';
+                if (v >= 100000)   return '₹' + (v/100000).toFixed(1) + 'L';
+                if (v >= 1000)     return '₹' + (v/1000).toFixed(0) + 'k';
+                return '₹' + v;
+              },
+              maxTicksLimit: 6
+            }
+          }
+        },
+        elements: {
+          point: { radius: 0, hoverRadius: 3 },
+          line: { tension: 0.4, borderWidth: 2 }
+        }
+      }
+    });
+    }
+  }
+
+  calc();
+</script>
+
+<script>
+  /* ── Theme toggle ── */
+  (function () {
+    var saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = saved === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', saved === 'light' ? 'true' : 'false'); }
+  })();
+
+  function toggleTheme() {
+    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+    var btn = document.getElementById('theme-btn');
+    if (btn) { btn.textContent = next === 'light' ? '🌙' : '☀️'; btn.setAttribute('aria-pressed', next === 'light' ? 'true' : 'false'); }
+    if (typeof updateChartTheme === 'function') { updateChartTheme(); }
+    try { if (typeof calc === 'function') { calc(); } } catch(e) {}
+  }
+
+  /* ── Back to top ── */
+  window.addEventListener('scroll', function () {
+    var btn = document.getElementById('back-top');
+    if (btn) btn.classList.toggle('visible', window.scrollY > 300);
+  });
+</script>
+
+<button class="back-top" id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">↑</button>
+</body>
+</html>
