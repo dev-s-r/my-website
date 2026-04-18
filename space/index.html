@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Why Can't We Reach the Speed of Light?</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Manrope:wght@600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #03050a;
@@ -21,30 +21,6 @@
   --muted: #5a7090;
   --muted2: #8aa0b8;
   --white: #f0f6ff;
-  --nav-bg: rgba(3,5,10,0.88);
-  --star-color: 200,220,255;
-  --star-opacity: 1;
-}
-
-/* ── Light mode — "daytime space" feel ── */
-[data-theme="light"] {
-  --bg: #E8F0FC;
-  --bg2: #DDE8FA;
-  --bg3: #CED9F5;
-  --border: #B8CBEE;
-  --border2: #9DB5E8;
-  --text: #0D1B2E;
-  --muted: #3D5A8A;
-  --muted2: #2C4A7A;
-  --white: #050E1A;
-  --nav-bg: rgba(232,240,252,0.90);
-  --star-color: 10,40,100;
-  --star-opacity: 0.35;
-}
-[data-theme="light"] body::before {
-  background:
-    radial-gradient(ellipse at 20% 15%, rgba(56,189,248,0.10) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 80%, rgba(99,102,241,0.08) 0%, transparent 55%);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -56,19 +32,6 @@ body {
   color: var(--text);
   line-height: 1.8;
   overflow-x: hidden;
-  transition: background 0.3s, color 0.3s;
-}
-
-/* subtle depth layer */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 20% 15%, rgba(56,189,248,0.07) 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 80%, rgba(99,102,241,0.05) 0%, transparent 55%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* ── CANVAS STARFIELD ── */
@@ -85,66 +48,22 @@ body::before {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 200;
-  background: var(--nav-bg);
+  background: rgba(3,5,10,0.88);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  height: 60px;
-  gap: 12px;
-}
-/* site logo — keeps brand identity on the left */
-.site-logo {
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.site-logo-text {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--muted2);
-  letter-spacing: 0.3px;
-  white-space: nowrap;
-  transition: color 0.2s;
-}
-.site-logo:hover .site-logo-text { color: var(--c1); }
-.site-logo-accent { color: #8B5CF6; }
-.nav-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border2);
-  flex-shrink: 0;
 }
 .nav-inner {
-  flex: 1;
-  min-width: 0;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   gap: 6px;
+  height: 52px;
   overflow-x: auto;
   scrollbar-width: none;
 }
 .nav-inner::-webkit-scrollbar{display:none;}
-/* theme toggle — same structure as main site */
-.theme-btn {
-  flex-shrink: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  width: 34px; height: 34px;
-  border-radius: 6px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--muted2);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-}
-.theme-btn:hover { border-color: var(--c1); color: var(--c1); }
 .nav-btn {
   flex-shrink: 0;
   font-family: 'JetBrains Mono', monospace;
@@ -287,7 +206,7 @@ body::before {
   margin-bottom: 20px;
   line-height: 1.15;
 }
-.section p { color: var(--muted2); font-size: 1.05rem; margin-bottom: 16px; }
+.section p { color: #b8c8d8; font-size: 1.05rem; margin-bottom: 16px; }
 .section p strong { color: var(--white); font-weight: 600; }
 
 /* ── CALLOUT ── */
@@ -648,45 +567,9 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 22px rgba(56,189
   .stat-grid { grid-template-columns: 1fr 1fr; }
   .summary-grid { grid-template-columns: 1fr; }
   .clock-row { flex-direction: column; }
-  .site-logo-text { display: none; }
 }
-
-/* ── FOOTER ── */
-.site-footer {
-  border-top: 1px solid var(--border);
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.5px;
-  color: var(--muted);
-  position: relative;
-  z-index: 1;
-  background: var(--nav-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.site-footer a {
-  color: var(--muted);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.site-footer a:hover { color: var(--c1); }
-.footer-links { display: flex; gap: 16px; }
-.footer-brand { color: var(--c1); }
 </style>
 </head>
-<!-- early theme apply — prevents flash of wrong theme -->
-<script>
-(function(){
-  var t = localStorage.getItem('theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-})();
-</script>
 <body>
 
 <canvas id="starfield"></canvas>
@@ -694,10 +577,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 22px rgba(56,189
 
 <!-- NAV -->
 <nav class="nav">
-  <a class="site-logo" href="../" title="Back to CalcByDev">
-    <span class="site-logo-text">Calc<span class="site-logo-accent">ByDev</span></span>
-  </a>
-  <div class="nav-divider"></div>
   <div class="nav-inner" id="navInner">
     <button class="nav-btn active" onclick="goSec(0)">Intro</button>
     <button class="nav-btn" onclick="goSec(1)">Photon Clock</button>
@@ -710,7 +589,6 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 22px rgba(56,189
     <button class="nav-btn" onclick="goSec(8)">Summary</button>
     <button class="nav-btn" onclick="goSec(9)">▶ Watch</button>
   </div>
-  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode">☀️</button>
 </nav>
 
 <!-- HERO -->
@@ -1251,25 +1129,7 @@ input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 22px rgba(56,189
 
 </div><!-- /wrap -->
 
-<footer class="site-footer">
-  <div>© 2026 <span class="footer-brand">CalcByDev</span> · devsr.me · Special Relativity Explorer</div>
-  <div class="footer-links">
-    <a href="../">← Calculators</a>
-    <a href="../about/">About</a>
-  </div>
-</footer>
-
 <script>
-// ═══════════ THEME TOGGLE ═══════════
-function toggleTheme(){
-  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  const btn = document.getElementById('theme-btn');
-  if(btn){ btn.textContent = next === 'light' ? '🌙' : '☀️'; }
-}
-
 // ═══════════ STARFIELD ═══════════
 (function(){
   const c = document.getElementById('starfield');
@@ -1288,15 +1148,12 @@ function toggleTheme(){
   resize(); window.addEventListener('resize',resize);
   function loop(){
     ctx.clearRect(0,0,W,H);
-    const style = getComputedStyle(document.documentElement);
-    const rgb = style.getPropertyValue('--star-color').trim() || '200,220,255';
-    const opScale = parseFloat(style.getPropertyValue('--star-opacity').trim()) || 1;
     stars.forEach(s=>{
       s.a = Math.max(0.05, Math.min(0.9, s.a+s.da));
       if(s.a<=0.05||s.a>=0.9) s.da*=-1;
       ctx.beginPath();
       ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${rgb},${s.a*opScale})`;
+      ctx.fillStyle=`rgba(200,220,255,${s.a})`;
       ctx.fill();
     });
     requestAnimationFrame(loop);
@@ -1337,10 +1194,6 @@ function goSec(idx){
 window.addEventListener('load',()=>{
   // show hero, hide all sections
   sections.forEach(s=>s.classList.add('hidden'));
-  // sync theme button icon with saved preference
-  const saved = localStorage.getItem('theme') || 'dark';
-  const btn = document.getElementById('theme-btn');
-  if(btn){ btn.textContent = saved === 'light' ? '🌙' : '☀️'; }
 });
 
 // ═══════════ QUIZ ═══════════
