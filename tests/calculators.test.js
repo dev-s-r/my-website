@@ -22,7 +22,8 @@ const relErr = (actual, expected) =>
 
 // 1. SIP CALCULATOR
 function calcSIP(P, rateAnnual, yrs) {
-  const i = rateAnnual / 100 / 12;
+  // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+  const i = Math.pow(1 + rateAnnual / 100, 1 / 12) - 1;
   const n = yrs * 12;
   const total = P * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
   const invested = P * n;
@@ -127,7 +128,8 @@ function calcGSTRemove(amount, rate) {
 // 10. STEP-UP SIP CALCULATOR
 function calcStepUpSIP(P, stepPct, rateAnnual, yrs) {
   const stepFrac = stepPct / 100;
-  const i = rateAnnual / 100 / 12;
+  // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+  const i = Math.pow(1 + rateAnnual / 100, 1 / 12) - 1;
   let total = 0, invested = 0, monthly = P;
   for (let y = 0; y < yrs; y++) {
     for (let m = 0; m < 12; m++) {
@@ -141,7 +143,8 @@ function calcStepUpSIP(P, stepPct, rateAnnual, yrs) {
 
 // 11. GOAL CALCULATOR (helper functions)
 function stepUpSIPFV(P, annualRate, years) {
-  const i = annualRate / 100 / 12;
+  // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+  const i = Math.pow(1 + annualRate / 100, 1 / 12) - 1;
   let fv = 0;
   for (let y = 0; y < years; y++) {
     const monthlyAmt = P * Math.pow(1.1, y);
@@ -164,7 +167,8 @@ function findStepUpSIP(target, rate, years) {
 }
 
 function calcGoal(goal, yrs, rateAnnual, saved) {
-  const i = rateAnnual / 100 / 12;
+  // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+  const i = Math.pow(1 + rateAnnual / 100, 1 / 12) - 1;
   const n = yrs * 12;
   const savedFV = saved * Math.pow(1 + rateAnnual / 100, yrs);
   const gap = Math.max(0, goal - savedFV);
@@ -277,17 +281,17 @@ describe('SIP Calculator', () => {
   test('default values: ₹5000/mo, 12%, 10 yrs', () => {
     const { total, invested } = calcSIP(5000, 12, 10);
     expect(round(invested)).toBe(600000);
-    // Standard SIP FV formula: expected ≈ 11,61,695
+    // Standard SIP FV formula with CAGR monthly rate: expected ≈ 11,20,179
     expect(total).toBeGreaterThan(1000000);
-    expect(total).toBeCloseTo(1161695, -2); // within ±100
+    expect(total).toBeCloseTo(1120179, -2); // within ±100
     expect(total).toBeGreaterThan(invested);
   });
 
   test('1-year SIP: ₹1000/mo, 12%, 1 yr', () => {
     const { total, invested } = calcSIP(1000, 12, 1);
     expect(round(invested)).toBe(12000);
-    // FV = 1000 × ((1.01)^12 - 1) / 0.01 × 1.01 ≈ 12,809
-    expect(total).toBeCloseTo(12809, 0);
+    // FV = 1000 × ((1.12)^(1/12))^12 using CAGR monthly rate ≈ 12,766
+    expect(total).toBeCloseTo(12766, 0);
   });
 
   test('maximum inputs: ₹10,00,000/mo, 30%, 40 yrs', () => {

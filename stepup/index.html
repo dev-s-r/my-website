@@ -215,7 +215,7 @@
   function calc(){
     const P=getVal('amt'),stepPct=getVal('step')/100,rate=getVal('rate'),yrs=getVal('yr');
     if(!P||!stepPct||!rate||!yrs)return;
-    const i=rate/100/12;
+    const i=Math.pow(1 + rate/100, 1/12) - 1;
     let total=0,invested=0,monthly=P;
     const labels=[],val=[],inv=[];
     for(let y=0;y<yrs;y++){for(let m=0;m<12;m++){total=(total+monthly)*(1+i);invested+=monthly;}labels.push('Yr '+(y+1));val.push(parseFloat(total.toFixed(2)));inv.push(parseFloat(invested.toFixed(2)));monthly*=(1+stepPct);}

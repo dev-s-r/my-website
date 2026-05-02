@@ -262,7 +262,8 @@
         const yearsSaved = (n - monthsPrepay) / 12;
 
         // SIP investment of extra amount for the original tenure
-        const i = investRate / 100 / 12;
+        // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+        const i = Math.pow(1 + investRate / 100, 1 / 12) - 1;
         const sipFV = extra * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
         const sipInv = extra * n;
         const sipReturns = sipFV - sipInv;
@@ -310,7 +311,7 @@
       calc: () => {
         const amt = gv('amt'), sipRate = gv('sip-rate'), yrs = gv('yr'), fdRate = gv('fd-rate');
         if (!amt || !sipRate || !yrs || !fdRate) return;
-        const i = sipRate / 100 / 12, n = yrs * 12;
+        const i = Math.pow(1 + sipRate / 100, 1 / 12) - 1, n = yrs * 12;
         const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
         // FD: monthly deposit, quarterly compounding => effective monthly rate
         const fdMonthly = Math.pow(1 + fdRate/100/4, 1/3) - 1;
@@ -333,7 +334,7 @@
       calc: () => {
         const amt = gv('amt'), yrs = gv('yr'), rate = gv('rate');
         if (!amt || !yrs || !rate) return;
-        const i = rate/100/12, n = yrs*12;
+        const i = Math.pow(1 + rate / 100, 1 / 12) - 1, n = yrs*12;
         const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
         const lumpInv = amt * n;
         const lumpFV = lumpInv * Math.pow(1 + rate/100, yrs);
@@ -374,7 +375,7 @@
       calc: () => {
         const amt = gv('amt'), sipRate = gv('sip-rate'), yrs = gv('yr'), infRate = gv('inf-rate');
         if (!amt || !sipRate || !yrs || !infRate) return;
-        const i = sipRate/100/12, n = yrs*12;
+        const i = Math.pow(1 + sipRate / 100, 1 / 12) - 1, n = yrs*12;
         const sipFV = amt * ((Math.pow(1+i, n) - 1) / i) * (1+i);
         const realFV = sipFV / Math.pow(1 + infRate/100, yrs);
         const invested = amt * n;
