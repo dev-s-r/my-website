@@ -201,7 +201,8 @@
   // P*year_factor(1) + P*1.1*year_factor(2) + ... where year_factor grows
   // More precisely, use binary search: given start SIP = P, each year increases by 10%
   function stepUpSIPFV(P, annualRate, years) {
-    const i = annualRate / 100 / 12;
+    // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+    const i = Math.pow(1 + annualRate / 100, 1 / 12) - 1;
     let fv = 0;
     for (let y = 0; y < years; y++) {
       const monthlyAmt = P * Math.pow(1.1, y);
@@ -230,7 +231,8 @@
     const saved = getVal('saved');
     if (!goal || !yrs || !rate) return;
 
-    const i = rate / 100 / 12;
+    // Use true CAGR-equivalent monthly rate: (1 + R_annual)^(1/12) - 1
+    const i = Math.pow(1 + rate / 100, 1 / 12) - 1;
     const n = yrs * 12;
 
     // Future value of already-saved amount
